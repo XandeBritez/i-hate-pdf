@@ -21,6 +21,17 @@ public partial class PageItem : ObservableObject
     /// <summary>Posicao 1..N na ordem atual do editor. Atualizada pelo ViewModel.</summary>
     [ObservableProperty] private int _displayNumber;
 
+    /// <summary>Numero que a pagina tinha no arquivo de origem.</summary>
+    public int OriginalNumber => PageIndex + 1;
+
+    /// <summary>
+    /// true quando a posicao atual difere da original (ou a pagina veio de
+    /// outro arquivo): so nesse caso vale mostrar as duas numeracoes.
+    /// </summary>
+    public bool HasMoved => DisplayNumber != OriginalNumber || IsFromOtherFile;
+
+    partial void OnDisplayNumberChanged(int value) => OnPropertyChanged(nameof(HasMoved));
+
     /// <summary>Miniatura ja congelada (Freeze) para uso seguro na thread de UI.</summary>
     [ObservableProperty] private BitmapSource? _thumbnail;
 
@@ -29,6 +40,8 @@ public partial class PageItem : ObservableObject
 
     /// <summary>true quando a pagina veio de um PDF diferente do documento aberto.</summary>
     [ObservableProperty] private bool _isFromOtherFile;
+
+    partial void OnIsFromOtherFileChanged(bool value) => OnPropertyChanged(nameof(HasMoved));
 
     public string SourceFileName => Path.GetFileName(SourcePath);
 

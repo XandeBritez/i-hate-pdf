@@ -8,6 +8,46 @@
              d:DataContext="{d:DesignInstance Type=vm:EditorViewModel}"
              mc:Ignorable="d">
 
+    <UserControl.Resources>
+        <!-- O que segue o cursor durante o arraste: uma miniatura leve e
+             inclinada, em vez da copia do card inteiro (que tapava a grade
+             e escondia justamente o ponto onde a pagina vai cair). -->
+        <DataTemplate x:Key="PageDragAdorner">
+            <Border Background="White"
+                    BorderBrush="{DynamicResource AccentBrush}"
+                    BorderThickness="2"
+                    CornerRadius="4"
+                    Padding="2"
+                    Opacity="0.85"
+                    RenderTransformOrigin="0.5,0.5">
+                <Border.RenderTransform>
+                    <RotateTransform Angle="-4" />
+                </Border.RenderTransform>
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="16" ShadowDepth="4" Direction="270" Opacity="0.35" Color="#000000" />
+                </Border.Effect>
+                <Grid>
+                    <Image Source="{Binding Thumbnail}"
+                           Width="104"
+                           Stretch="Uniform"
+                           RenderOptions.BitmapScalingMode="HighQuality" />
+                    <Border Width="24" Height="24" CornerRadius="12"
+                            Margin="4"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Top"
+                            Background="{DynamicResource AccentBrush}">
+                        <TextBlock Text="{Binding DisplayNumber, Mode=OneWay}"
+                                   FontSize="11"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource OnAccentBrush}"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center" />
+                    </Border>
+                </Grid>
+            </Border>
+        </DataTemplate>
+    </UserControl.Resources>
+
     <Grid Margin="28,24,28,20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -59,7 +99,12 @@
                          Visibility="{Binding Pages.Count, Converter={StaticResource EmptyToVisibility}, ConverterParameter=invert}"
                          dd:DragDrop.IsDragSource="True"
                          dd:DragDrop.IsDropTarget="True"
-                         dd:DragDrop.UseDefaultDragAdorner="True">
+                         dd:DragDrop.SelectDroppedItems="False"
+                         dd:DragDrop.DragAdornerTemplate="{StaticResource PageDragAdorner}"
+                         dd:DragDrop.DropTargetAdornerBrush="{DynamicResource AccentBrush}"
+                         dd:DragDrop.DragMouseAnchorPoint="0.5,0.5"
+                         dd:DragDrop.MinimumHorizontalDragDistance="6"
+                         dd:DragDrop.MinimumVerticalDragDistance="6">
                     <ListBox.ItemsPanel>
                         <ItemsPanelTemplate>
                             <WrapPanel Orientation="Horizontal" />
@@ -88,7 +133,9 @@
                                     BorderBrush="{DynamicResource BorderBrushSoft}"
                                     BorderThickness="1"
                                     CornerRadius="10"
-                                    Padding="10">
+                                    Padding="10"
+                                    Cursor="Hand"
+                                    ToolTip="Arraste para mudar a posicao desta pagina">
                                 <StackPanel>
                                     <Grid Height="200">
                                         <!-- A folha ganha borda e sombra para nao se fundir com o card. -->
@@ -112,6 +159,38 @@
                                                    HorizontalAlignment="Center"
                                                    VerticalAlignment="Center"
                                                    Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}" />
+
+                                        <!-- Posicao atual: o numero que a pagina tera no PDF salvo -->
+                                        <Border Width="28" Height="28" CornerRadius="14"
+                                                Margin="6"
+                                                HorizontalAlignment="Left"
+                                                VerticalAlignment="Top"
+                                                Background="{DynamicResource AccentBrush}">
+                                            <TextBlock Text="{Binding DisplayNumber, Mode=OneWay}"
+                                                       FontSize="12.5"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource OnAccentBrush}"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center" />
+                                        </Border>
+
+                                        <!-- Numeracao de origem, so quando a pagina saiu do lugar -->
+                                        <Border CornerRadius="9"
+                                                Margin="6"
+                                                Padding="7,3"
+                                                HorizontalAlignment="Right"
+                                                VerticalAlignment="Top"
+                                                Background="{DynamicResource CardHoverBrush}"
+                                                BorderBrush="{DynamicResource BorderBrushSoft}"
+                                                BorderThickness="1"
+                                                ToolTip="Posicao desta pagina no arquivo de origem"
+                                                Visibility="{Binding HasMoved, Converter={StaticResource BoolToVisibility}}">
+                                            <TextBlock FontSize="10.5"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}">
+                                                <Run Text="era" />
+                                                <Run Text="{Binding OriginalNumber, Mode=OneWay}" FontWeight="SemiBold" />
+                                            </TextBlock>
+                                        </Border>
                                     </Grid>
 
                                     <Grid Margin="0,10,0,0">
@@ -128,7 +207,7 @@
                                         <StackPanel Grid.Column="1" Margin="8,0,0,0">
                                             <TextBlock Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12.5">
                                                 <Run Text="Pagina" />
-                                                <Run Text="{Binding DisplayNumber, Mode=OneWay}" />
+                                                <Run Text="{Binding DisplayNumber, Mode=OneWay}" FontWeight="SemiBold" />
                                             </TextBlock>
                                             <!-- Origem so aparece quando a pagina veio de outro arquivo. -->
                                             <TextBlock Text="{Binding SourceFileName}"
@@ -144,6 +223,11 @@
                             </Border>
 
                             <DataTemplate.Triggers>
+                                <!-- Pairar ja indica que o card e agarravel -->
+                                <Trigger SourceName="Card" Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Card" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                                    <Setter TargetName="Card" Property="Background" Value="{DynamicResource CardHoverBrush}" />
+                                </Trigger>
                                 <DataTrigger Binding="{Binding IsSelected}" Value="True">
                                     <Setter TargetName="Card" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
                                     <Setter TargetName="Card" Property="BorderThickness" Value="2" />

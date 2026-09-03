@@ -44,7 +44,7 @@ Arraste vários PDFs. Cada um vira um **card com a capa visível** e um número 
 <td width="33%" valign="top">
 
 ### ✂️ Editar páginas
-Abra um PDF e veja **cada página como miniatura**. Marque as que morrem, arraste as que ficam, puxe páginas de outro arquivo. Salva como um PDF novo — o original não é tocado.
+Abra um PDF e veja **cada página como miniatura**. Marque as que morrem, arraste as que ficam, puxe páginas de outro arquivo. Cada card mostra a **posição nova** e a **original** (`era 3`), então dá para conferir a reorganização antes de salvar. Salva como um PDF novo — o original não é tocado.
 
 </td>
 <td width="33%" valign="top">
