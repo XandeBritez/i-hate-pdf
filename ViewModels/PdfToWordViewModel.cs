@@ -42,8 +42,13 @@ public sealed partial class PdfToWordViewModel : ViewModelBase
     /// <summary>Word por padrao; texto puro para quem so quer o conteudo.</summary>
     [ObservableProperty] private bool _exportAsWord = true;
 
-    /// <summary>Sem LibreOffice esta tela nao funciona; a UI avisa antes da tentativa.</summary>
-    public bool IsLibreOfficeMissing => !_exportService.IsAvailable;
+    partial void OnExportAsWordChanged(bool value) => OnPropertyChanged(nameof(IsLibreOfficeMissing));
+
+    /// <summary>
+    /// O aviso do LibreOffice so aparece no formato que depende dele: o .txt e
+    /// extraido nativamente e funciona sem nada instalado.
+    /// </summary>
+    public bool IsLibreOfficeMissing => !_exportService.IsFormatAvailable(Format);
 
     // ===== Instalacao do LibreOffice sem sair do app =====
 
@@ -95,7 +100,7 @@ public sealed partial class PdfToWordViewModel : ViewModelBase
     {
         OnPropertyChanged(nameof(IsLibreOfficeMissing));
 
-        LibreOfficeStatus = _exportService.IsAvailable
+        LibreOfficeStatus = _exportService.IsLibreOfficeAvailable
             ? "LibreOffice encontrado. A conversao esta liberada."
             : "Ainda nao encontrei o LibreOffice. Se acabou de instalar, conclua a instalacao e tente de novo.";
     }

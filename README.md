@@ -59,7 +59,7 @@ Abra um PDF e veja **cada página como miniatura**. Marque as que morrem, arrast
 
 ### 📤 E o caminho de volta: PDF → Word
 
-Recupera o texto de um PDF em um `.docx` editável (ou `.txt` puro), importando pelo Writer do LibreOffice.
+Recupera o conteúdo de um PDF em um `.docx` editável (via Writer do LibreOffice) ou em `.txt` puro (extração nativa com PdfPig, **sem depender de nada instalado**).
 
 > **Honestidade sobre o formato:** o PDF descreve *posições de glifos*, não parágrafos. O texto sai bem; layout complexo — colunas, tabelas, caixas — é reconstruído por aproximação. E um PDF **escaneado não tem texto algum**: viraria um documento vazio, porque este app não faz OCR.
 
@@ -81,7 +81,7 @@ Recupera o texto de um PDF em um `.docx` editável (ou `.txt` puro), importando 
 
 O pacote é **self-contained**: não precisa instalar o .NET.
 
-> **DOCX, XLSX e PDF → Word** precisam do [LibreOffice](https://www.libreoffice.org). Você não precisa sair do app para isso: a tela **PDF para Word** tem um botão que descobre a versão estável atual, baixa o instalador oficial com barra de progresso e o abre para você. O app acha o `soffice.exe` sozinho depois (registro, Program Files e PATH). Sem ele, TXT e todas as ferramentas de PDF continuam funcionando normalmente.
+> **DOCX, XLSX e PDF → Word (.docx)** precisam do [LibreOffice](https://www.libreoffice.org). O `.txt` não precisa. Você não precisa sair do app para isso: a tela **PDF para Word** tem um botão que descobre a versão estável atual, baixa o instalador oficial com barra de progresso e o abre para você. O app acha o `soffice.exe` sozinho depois (registro, Program Files e PATH). Sem ele, TXT e todas as ferramentas de PDF continuam funcionando normalmente.
 
 ### Atualizar
 
@@ -133,6 +133,7 @@ Themes/         Light · Dark · Styles
 | MVVM | [CommunityToolkit.Mvvm](https://www.nuget.org/packages/CommunityToolkit.Mvvm) | bindings, comandos, messenger |
 | Arrastar cards | [gong-wpf-dragdrop](https://www.nuget.org/packages/gong-wpf-dragdrop) | reordenação dentro das listas |
 | DOCX / XLSX | LibreOffice `--headless` | Office → PDF e PDF → Word (`writer_pdf_import`) |
+| Extração de texto | [PdfPig](https://www.nuget.org/packages/PdfPig) | PDF → TXT sem dependência externa |
 
 **A ideia central:** toda operação de página é a mesma primitiva.
 
@@ -147,6 +148,7 @@ Detalhes que custam caro quando ficam de fora:
 - As miniaturas são renderizadas **fora da thread de UI** e chegam com `Freeze()` — sem isso, `InvalidOperationException` no binding.
 - O PDFium é serializado por um semáforo; ele não é reentrante.
 - O PDFsharp 6 **não resolve fontes sozinho**: sem um `IFontResolver`, converter TXT lança `No appropriate font found`.
+- O LibreOffice **não serve para gerar `.txt`** a partir de PDF: ao importar, ele põe o conteúdo em quadros de texto flutuantes, e o filtro de texto puro exporta só o corpo do documento — o arquivo saía **vazio**. Por isso o TXT é extraído com PdfPig.
 - O LibreOffice roda com **perfil temporário próprio** (`-env:UserInstallation=`), senão execuções seguidas travam no lock do perfil. E o `soffice` retorna 0 mesmo em algumas falhas, então a saída é validada pela existência do PDF.
 
 ---

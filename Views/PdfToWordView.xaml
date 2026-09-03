@@ -21,7 +21,7 @@
         <StackPanel Grid.Row="0">
             <TextBlock Text="PDF para Word" Style="{StaticResource TitleText}" />
             <TextBlock Style="{StaticResource SubtitleText}" Margin="0,4,0,0"
-                       Text="Recupera o texto do PDF em um .docx editavel. O PDF guarda posicoes de glifos, nao paragrafos: o texto sai bem, mas layout complexo (colunas, tabelas) e aproximado e PDF escaneado nao tem texto para extrair." />
+                       Text="Recupera o conteudo do PDF em .docx editavel ou .txt. O PDF guarda posicoes de glifos, nao paragrafos: o texto sai bem, mas layout complexo (colunas, tabelas) e aproximado, e PDF escaneado nao tem texto para extrair." />
         </StackPanel>
 
         <!-- Aviso de dependencia ausente, antes de o usuario tentar e falhar -->
@@ -44,7 +44,7 @@
                                FontSize="12.5"
                                TextWrapping="Wrap"
                                Foreground="{DynamicResource TextPrimaryBrush}"
-                               Text="Esta ferramenta precisa do LibreOffice. Baixe por aqui mesmo: o app pega o instalador oficial e abre para voce. O resto do app funciona sem ele." />
+                               Text="Gerar .docx precisa do LibreOffice. Baixe por aqui mesmo: o app pega o instalador oficial e abre para voce. A opcao Texto puro (.txt) funciona sem ele." />
                 </StackPanel>
 
                 <ProgressBar Height="4"
@@ -100,6 +100,7 @@
 
                     <RadioButton Content="Texto puro (.txt)"
                                  GroupName="Formato"
+                                 ToolTip="Extraido direto do PDF; nao precisa do LibreOffice"
                                  VerticalAlignment="Center"
                                  Foreground="{DynamicResource TextPrimaryBrush}" />
                 </StackPanel>
