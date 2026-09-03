@@ -129,6 +129,66 @@
         <Setter Property="SnapsToDevicePixels" Value="True" />
     </Style>
 
+    <!-- ===== Selos sobre a miniatura =====
+         Mesma pilula para a posicao atual e para a origem ("era 3"); o peso
+         do texto e o unico contraste entre as duas informacoes. -->
+    <Style x:Key="CardBadge" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource CardHoverBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushSoft}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="9" />
+        <Setter Property="Padding" Value="7,3" />
+        <Setter Property="Margin" Value="6" />
+        <Setter Property="VerticalAlignment" Value="Top" />
+        <!-- A pilula fica sobre a folha branca da miniatura: sem a sombra ela
+             se dissolveria no fundo. -->
+        <Setter Property="Effect">
+            <Setter.Value>
+                <DropShadowEffect BlurRadius="6" ShadowDepth="1" Direction="270" Opacity="0.22" Color="#000000" />
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="CardBadgeText" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="10.5" />
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+    </Style>
+
+    <!-- ===== O que segue o cursor ao arrastar um card =====
+         Miniatura pequena e inclinada, em vez da copia do card inteiro (que
+         tapava a grade justamente onde o item ia cair). Serve tanto para
+         paginas quanto para arquivos: ambos expoem Thumbnail e DisplayNumber. -->
+    <DataTemplate x:Key="DragCardAdorner">
+        <Border Background="White"
+                BorderBrush="{DynamicResource AccentBrush}"
+                BorderThickness="2"
+                CornerRadius="4"
+                Padding="2"
+                Opacity="0.85"
+                RenderTransformOrigin="0.5,0.5">
+            <Border.RenderTransform>
+                <RotateTransform Angle="-4" />
+            </Border.RenderTransform>
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="16" ShadowDepth="4" Direction="270" Opacity="0.35" Color="#000000" />
+            </Border.Effect>
+            <Grid>
+                <Image Source="{Binding Thumbnail}"
+                       Width="104"
+                       Stretch="Uniform"
+                       RenderOptions.BitmapScalingMode="HighQuality" />
+                <Border Style="{StaticResource CardBadge}"
+                        Margin="4"
+                        HorizontalAlignment="Left">
+                    <TextBlock Text="{Binding DisplayNumber, Mode=OneWay}"
+                               Style="{StaticResource CardBadgeText}"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimaryBrush}" />
+                </Border>
+            </Grid>
+        </Border>
+    </DataTemplate>
+
     <!-- ===== Card generico ===== -->
     <Style x:Key="Card" TargetType="Border">
         <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}" />

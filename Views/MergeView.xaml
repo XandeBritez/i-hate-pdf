@@ -76,8 +76,12 @@
                          Visibility="{Binding Files.Count, Converter={StaticResource EmptyToVisibility}, ConverterParameter=invert}"
                          dd:DragDrop.IsDragSource="True"
                          dd:DragDrop.IsDropTarget="True"
-                         dd:DragDrop.UseDefaultDragAdorner="True"
-                         dd:DragDrop.SelectDroppedItems="True">
+                         dd:DragDrop.SelectDroppedItems="True"
+                         dd:DragDrop.DragAdornerTemplate="{StaticResource DragCardAdorner}"
+                         dd:DragDrop.DropTargetAdornerBrush="{DynamicResource AccentBrush}"
+                         dd:DragDrop.DragMouseAnchorPoint="0.5,0.5"
+                         dd:DragDrop.MinimumHorizontalDragDistance="6"
+                         dd:DragDrop.MinimumVerticalDragDistance="6">
                     <ListBox.ItemsPanel>
                         <ItemsPanelTemplate>
                             <WrapPanel Orientation="Horizontal" />
@@ -107,7 +111,8 @@
                                     BorderThickness="1"
                                     CornerRadius="10"
                                     Padding="10"
-                                    ToolTip="{Binding FilePath}">
+                                    Cursor="Hand"
+                                    ToolTip="Arraste para mudar a ordem deste arquivo">
                                 <StackPanel>
                                     <Grid Height="200">
                                         <!-- A folha ganha borda e sombra para nao se fundir com o card. -->
@@ -132,17 +137,13 @@
                                                    VerticalAlignment="Center"
                                                    Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}" />
                                         <!-- Ordem no documento final -->
-                                        <Border Width="26" Height="26" CornerRadius="13"
-                                                Margin="6"
+                                        <Border Style="{StaticResource CardBadge}"
                                                 HorizontalAlignment="Left"
-                                                VerticalAlignment="Top"
-                                                Background="{DynamicResource AccentBrush}">
+                                                ToolTip="Ordem deste arquivo no PDF final">
                                             <TextBlock Text="{Binding DisplayNumber, Mode=OneWay}"
-                                                       FontSize="12"
+                                                       Style="{StaticResource CardBadgeText}"
                                                        FontWeight="SemiBold"
-                                                       Foreground="{DynamicResource OnAccentBrush}"
-                                                       HorizontalAlignment="Center"
-                                                       VerticalAlignment="Center" />
+                                                       Foreground="{DynamicResource TextPrimaryBrush}" />
                                         </Border>
                                     </Grid>
 
@@ -160,6 +161,10 @@
                             </Border>
 
                             <DataTemplate.Triggers>
+                                <Trigger SourceName="Card" Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Card" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                                    <Setter TargetName="Card" Property="Background" Value="{DynamicResource CardHoverBrush}" />
+                                </Trigger>
                                 <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
                                     <Setter TargetName="Card" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
                                     <Setter TargetName="Card" Property="BorderThickness" Value="2" />
