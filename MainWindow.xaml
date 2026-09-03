@@ -1,0 +1,149 @@
+<Window x:Class="IHatePdf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:b="clr-namespace:IHatePdf.Behaviors"
+        xmlns:vm="clr-namespace:IHatePdf.ViewModels"
+        xmlns:views="clr-namespace:IHatePdf.Views"
+        Title="I Hate PDF"
+        Icon="/Assets/logo-mark.png"
+        Height="660" Width="1140"
+        MinHeight="520" MinWidth="880"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource WindowBackgroundBrush}"
+        TextOptions.TextFormattingMode="Display"
+        UseLayoutRounding="True">
+
+    <Window.Resources>
+        <!-- Mapeamento ViewModel -> View (navegacao sem code-behind). -->
+        <DataTemplate DataType="{x:Type vm:MergeViewModel}">
+            <views:MergeView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:EditorViewModel}">
+            <views:EditorView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ConverterViewModel}">
+            <views:ConverterView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:AboutViewModel}">
+            <views:AboutView />
+        </DataTemplate>
+    </Window.Resources>
+
+    <!-- Drop global: qualquer arquivo solto na janela e roteado pelo MainViewModel. -->
+    <Grid b:FileDropBehavior.DropCommand="{Binding DropFilesCommand}"
+          b:FileDropBehavior.DragStateCommand="{Binding SetDragOverCommand}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="248" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- ===== Menu lateral ===== -->
+        <Border Grid.Column="0"
+                Background="{DynamicResource SidebarBackgroundBrush}"
+                BorderBrush="{DynamicResource BorderBrushSoft}"
+                BorderThickness="0,0,1,0">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Top" Margin="18,20,18,18">
+                    <StackPanel Orientation="Horizontal">
+                        <Image Source="/Assets/logo-mark.png"
+                               Width="38" Height="38"
+                               VerticalAlignment="Center"
+                               RenderOptions.BitmapScalingMode="HighQuality" />
+                        <StackPanel Margin="11,0,0,0" VerticalAlignment="Center">
+                            <TextBlock FontSize="15" Foreground="{DynamicResource TextPrimaryBrush}">
+                                <Run Text="i" FontWeight="Bold" />
+                                <Run Text="HATE" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}" />
+                                <Run Text="PDF" FontWeight="Bold" />
+                            </TextBlock>
+                            <TextBlock Text="Ferramentas de PDF offline"
+                                       FontSize="10.5"
+                                       Margin="0,1,0,0"
+                                       Foreground="{DynamicResource TextSecondaryBrush}" />
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Rodape: tema -->
+                <Border DockPanel.Dock="Bottom" Margin="20,12,20,20">
+                    <ToggleButton IsChecked="{Binding IsDarkTheme, Mode=OneWay}"
+                                  Command="{Binding ToggleThemeCommand}"
+                                  Cursor="Hand"
+                                  Background="Transparent"
+                                  BorderThickness="0"
+                                  HorizontalAlignment="Left">
+                        <ToggleButton.Template>
+                            <ControlTemplate TargetType="ToggleButton">
+                                <Border Background="Transparent" Padding="4">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock x:Name="Icon"
+                                                   Text="&#xE706;"
+                                                   FontFamily="Segoe MDL2 Assets"
+                                                   FontSize="15"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}" />
+                                        <TextBlock x:Name="Label"
+                                                   Text="Tema claro"
+                                                   Margin="10,0,0,0"
+                                                   FontSize="12.5"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}" />
+                                    </StackPanel>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsChecked" Value="True">
+                                        <Setter TargetName="Icon" Property="Text" Value="&#xE708;" />
+                                        <Setter TargetName="Label" Property="Text" Value="Tema escuro" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </ToggleButton.Template>
+                    </ToggleButton>
+                </Border>
+
+                <ItemsControl ItemsSource="{Binding Pages}" Margin="0,4,0,0">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <RadioButton Style="{StaticResource NavButton}"
+                                         GroupName="Nav"
+                                         Command="{Binding DataContext.NavigateCommand,
+                                                   RelativeSource={RelativeSource AncestorType=Window}}"
+                                         CommandParameter="{Binding}">
+                                <RadioButton.IsChecked>
+                                    <MultiBinding Converter="{StaticResource Equality}" Mode="OneWay">
+                                        <Binding Path="." />
+                                        <Binding Path="DataContext.CurrentPage"
+                                                 RelativeSource="{RelativeSource AncestorType=Window}" />
+                                    </MultiBinding>
+                                </RadioButton.IsChecked>
+                            </RadioButton>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </DockPanel>
+        </Border>
+
+        <!-- ===== Conteudo ===== -->
+        <Grid Grid.Column="1">
+            <ContentControl Content="{Binding CurrentPage}" />
+
+            <!-- Overlay de arraste sobre toda a janela -->
+            <Border Background="#B3000000"
+                    Visibility="{Binding IsDragOver, Converter={StaticResource BoolToVisibility}}"
+                    IsHitTestVisible="False">
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <TextBlock Text="&#xE8E5;"
+                               FontFamily="Segoe MDL2 Assets"
+                               FontSize="48"
+                               Foreground="White"
+                               HorizontalAlignment="Center" />
+                    <TextBlock Text="Solte os arquivos aqui"
+                               FontSize="20"
+                               Margin="0,14,0,0"
+                               Foreground="White" />
+                    <TextBlock Text="PDF vai para unir/editar. TXT, DOCX e XLSX vao para conversao."
+                               FontSize="12.5"
+                               Margin="0,6,0,0"
+                               Foreground="#DDFFFFFF" />
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>

@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <LangVersion>latest</LangVersion>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+    <AssemblyName>IHatePdf</AssemblyName>
+    <RootNamespace>IHatePdf</RootNamespace>
+    <!-- Permite executar sobre runtimes mais novos caso o .NET 8 Desktop nao esteja instalado. -->
+    <RollForward>LatestMajor</RollForward>
+    <Platforms>AnyCPU;x64</Platforms>
+
+    <!-- Identidade: o icone e a marca sem texto; a assinatura completa vive na tela Sobre. -->
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+    <Product>I Hate PDF</Product>
+    <Company>XandeBritez</Company>
+    <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\logo-full.png" />
+    <Resource Include="Assets\logo-mark.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- MVVM: ObservableProperty, RelayCommand, WeakReferenceMessenger -->
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <!-- Injecao de dependencia -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
+    <!-- Estrutura de PDF: merge, extracao, remocao e reordenacao de paginas -->
+    <PackageReference Include="PDFsharp" Version="6.2.4" />
+    <!-- Renderizacao de miniaturas (empacota os binarios nativos do PDFium) -->
+    <PackageReference Include="PDFtoImage" Version="5.4.0" />
+    <!-- Drag and drop de reordenacao dentro de ListBox/ItemsControl -->
+    <PackageReference Include="gong-wpf-dragdrop" Version="4.0.0" />
+  </ItemGroup>
+
+</Project>

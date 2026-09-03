@@ -1,0 +1,202 @@
+<UserControl x:Class="IHatePdf.Views.AboutView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:IHatePdf.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             d:DataContext="{d:DesignInstance Type=vm:AboutViewModel}"
+             mc:Ignorable="d">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,6,0">
+        <Grid Margin="28,20,28,20" MaxWidth="880" HorizontalAlignment="Left">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- ===== Assinatura ===== -->
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Image Grid.Column="0"
+                       Source="/Assets/logo-full.png"
+                       Width="150"
+                       VerticalAlignment="Top"
+                       RenderOptions.BitmapScalingMode="HighQuality" />
+
+                <StackPanel Grid.Column="1" Margin="26,6,0,0">
+                    <TextBlock Text="Seus PDFs, resolvidos na sua maquina"
+                               Style="{StaticResource TitleText}"
+                               TextWrapping="Wrap" />
+                    <TextBlock Style="{StaticResource SubtitleText}"
+                               Margin="0,8,0,0"
+                               MaxWidth="520"
+                               HorizontalAlignment="Left"
+                               Text="Unir, reorganizar e converter sem upload, sem conta, sem marca d'agua. Nenhum arquivo sai do seu computador: todo o processamento acontece localmente." />
+
+                    <StackPanel Orientation="Horizontal" Margin="0,18,0,0">
+                        <Border Style="{StaticResource Card}" Padding="14,9" Margin="0,0,10,0">
+                            <StackPanel>
+                                <TextBlock Text="Versao instalada"
+                                           FontSize="10.5"
+                                           Foreground="{DynamicResource TextSecondaryBrush}" />
+                                <TextBlock Text="{Binding Version}"
+                                           FontSize="17"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextPrimaryBrush}" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}" Padding="14,9">
+                            <StackPanel>
+                                <TextBlock Text="Distribuicao"
+                                           FontSize="10.5"
+                                           Foreground="{DynamicResource TextSecondaryBrush}" />
+                                <TextBlock Text="GitHub Releases"
+                                           FontSize="17"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextPrimaryBrush}" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+
+            <!-- ===== Atualizacao ===== -->
+            <Border Grid.Row="1" Style="{StaticResource Card}" Padding="20,18" Margin="0,30,0,0">
+                <StackPanel>
+                    <TextBlock Text="Atualizacoes"
+                               FontSize="15"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimaryBrush}" />
+                    <TextBlock Style="{StaticResource SubtitleText}"
+                               Margin="0,4,0,0"
+                               Text="O app consulta as releases do repositorio e baixa o pacote para a sua pasta Downloads." />
+
+                    <TextBlock Text="{Binding UpdateStatus}"
+                               Margin="0,14,0,0"
+                               FontSize="12.5"
+                               TextWrapping="Wrap"
+                               Foreground="{DynamicResource TextPrimaryBrush}" />
+
+                    <ProgressBar Height="4"
+                                 Margin="0,12,0,0"
+                                 Minimum="0" Maximum="100"
+                                 Value="{Binding DownloadProgress}"
+                                 Foreground="{DynamicResource AccentBrush}"
+                                 Background="{DynamicResource BorderBrushSoft}"
+                                 BorderThickness="0"
+                                 Visibility="{Binding IsDownloading, Converter={StaticResource BoolToVisibility}}" />
+
+                    <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
+                        <Button Content="Verificar atualizacoes"
+                                Style="{StaticResource PrimaryButton}"
+                                IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}"
+                                Command="{Binding CheckForUpdatesCommand}" />
+                        <Button Content="Baixar nova versao"
+                                Style="{StaticResource GhostButton}"
+                                Command="{Binding DownloadUpdateCommand}"
+                                Visibility="{Binding HasUpdate, Converter={StaticResource BoolToVisibility}}" />
+                        <Button Content="Ver todas as releases"
+                                Style="{StaticResource GhostButton}"
+                                Command="{Binding OpenReleasesCommand}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- ===== O que tem dentro ===== -->
+            <StackPanel Grid.Row="2" Margin="0,30,0,0">
+                <TextBlock Text="O que tem dentro"
+                           FontSize="15"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextPrimaryBrush}" />
+
+                <UniformGrid Columns="3" Margin="0,12,0,0">
+                    <Border Style="{StaticResource Card}" Margin="0,0,12,0" Padding="16,14">
+                        <StackPanel>
+                            <TextBlock Text="&#xE8C8;" Style="{StaticResource GlyphText}"
+                                       FontSize="17" Foreground="{DynamicResource AccentBrush}" />
+                            <TextBlock Text="Unir" Margin="0,8,0,0" FontWeight="SemiBold" FontSize="13"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <TextBlock Style="{StaticResource SubtitleText}" FontSize="11.5" Margin="0,3,0,0"
+                                       Text="Fila de PDFs com capa visivel e ordem definida por arrasto." />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource Card}" Margin="0,0,12,0" Padding="16,14">
+                        <StackPanel>
+                            <TextBlock Text="&#xE70F;" Style="{StaticResource GlyphText}"
+                                       FontSize="17" Foreground="{DynamicResource AccentBrush}" />
+                            <TextBlock Text="Editar paginas" Margin="0,8,0,0" FontWeight="SemiBold" FontSize="13"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <TextBlock Style="{StaticResource SubtitleText}" FontSize="11.5" Margin="0,3,0,0"
+                                       Text="Miniatura de cada pagina: apague, reordene, traga paginas de outro PDF." />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource Card}" Padding="16,14">
+                        <StackPanel>
+                            <TextBlock Text="&#xE8AB;" Style="{StaticResource GlyphText}"
+                                       FontSize="17" Foreground="{DynamicResource AccentBrush}" />
+                            <TextBlock Text="Converter" Margin="0,8,0,0" FontWeight="SemiBold" FontSize="13"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <TextBlock Style="{StaticResource SubtitleText}" FontSize="11.5" Margin="0,3,0,0"
+                                       Text="TXT direto pelo PDFsharp; DOCX e XLSX pelo LibreOffice headless." />
+                        </StackPanel>
+                    </Border>
+                </UniformGrid>
+            </StackPanel>
+
+            <!-- ===== Creditos ===== -->
+            <StackPanel Grid.Row="3" Margin="0,30,0,8">
+                <TextBlock Text="Construido com"
+                           FontSize="15"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextPrimaryBrush}" />
+
+                <ItemsControl Margin="0,10,0,0">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+
+                    <Border Style="{StaticResource Card}" Padding="10,6" Margin="0,0,8,8">
+                        <TextBlock Text=".NET 8 + WPF" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" />
+                    </Border>
+                    <Border Style="{StaticResource Card}" Padding="10,6" Margin="0,0,8,8">
+                        <TextBlock Text="CommunityToolkit.Mvvm" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" />
+                    </Border>
+                    <Border Style="{StaticResource Card}" Padding="10,6" Margin="0,0,8,8">
+                        <TextBlock Text="PDFsharp" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" />
+                    </Border>
+                    <Border Style="{StaticResource Card}" Padding="10,6" Margin="0,0,8,8">
+                        <TextBlock Text="PDFium / PDFtoImage" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" />
+                    </Border>
+                    <Border Style="{StaticResource Card}" Padding="10,6" Margin="0,0,8,8">
+                        <TextBlock Text="gong-wpf-dragdrop" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" />
+                    </Border>
+                </ItemsControl>
+
+                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                    <Button Content="Repositorio no GitHub"
+                            Style="{StaticResource GhostButton}"
+                            Command="{Binding OpenRepositoryCommand}" />
+                    <Button Content="Reportar um problema"
+                            Style="{StaticResource GhostButton}"
+                            Command="{Binding OpenIssuesCommand}" />
+                </StackPanel>
+
+                <TextBlock Style="{StaticResource SubtitleText}"
+                           FontSize="11"
+                           Margin="0,16,0,0"
+                           Text="Feito por XandeBritez. Processamento 100% local." />
+            </StackPanel>
+        </Grid>
+    </ScrollViewer>
+</UserControl>

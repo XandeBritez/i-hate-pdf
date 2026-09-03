@@ -1,0 +1,21 @@
+<Application x:Class="IHatePdf.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:b="clr-namespace:IHatePdf.Behaviors">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- Indice 0: paleta do tema. Trocada em runtime por App.ApplyTheme. -->
+                <ResourceDictionary Source="Themes/Light.xaml" />
+                <ResourceDictionary Source="Themes/Styles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <b:InverseBoolConverter x:Key="InverseBool" />
+            <b:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibility" />
+            <b:EmptyToVisibilityConverter x:Key="EmptyToVisibility" />
+            <b:MultiEqualityConverter x:Key="Equality" />
+            <b:ConversionStatusToTextConverter x:Key="ConversionStatusToText" />
+            <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
