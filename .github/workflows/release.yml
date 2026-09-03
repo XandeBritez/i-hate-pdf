@@ -49,7 +49,12 @@ jobs:
 
       - name: Compactar
         shell: pwsh
-        run: Compress-Archive -Path publish\* -DestinationPath IHatePdf-${{ steps.version.outputs.version }}-win-x64.zip
+        run: |
+          # Os .pdb nativos das dependencias (libSkiaSharp) sobrevivem ao
+          # DebugType=none: remova-os antes de empacotar.
+          Remove-Item publish\*.pdb -Force -ErrorAction SilentlyContinue
+          Get-ChildItem publish | ForEach-Object { "empacotando: $($_.Name)" }
+          Compress-Archive -Path publish\* -DestinationPath IHatePdf-${{ steps.version.outputs.version }}-win-x64.zip
 
       - name: Criar release
         uses: softprops/action-gh-release@v2
