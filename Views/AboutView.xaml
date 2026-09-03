@@ -116,8 +116,8 @@
                            FontWeight="SemiBold"
                            Foreground="{DynamicResource TextPrimaryBrush}" />
 
-                <UniformGrid Columns="2" Margin="0,12,0,0">
-                    <Border Style="{StaticResource Card}" Margin="0,0,12,12" Padding="16,14">
+                <UniformGrid Columns="2" Margin="0,12,-14,0">
+                    <Border Style="{StaticResource Card}" Margin="0,0,14,14" Padding="16,14">
                         <StackPanel>
                             <TextBlock Text="&#xE8C8;" Style="{StaticResource GlyphText}"
                                        FontSize="17" Foreground="{DynamicResource AccentBrush}" />
@@ -128,7 +128,7 @@
                         </StackPanel>
                     </Border>
 
-                    <Border Style="{StaticResource Card}" Margin="0,0,12,12" Padding="16,14">
+                    <Border Style="{StaticResource Card}" Margin="0,0,14,14" Padding="16,14">
                         <StackPanel>
                             <TextBlock Text="&#xE70F;" Style="{StaticResource GlyphText}"
                                        FontSize="17" Foreground="{DynamicResource AccentBrush}" />
@@ -139,7 +139,7 @@
                         </StackPanel>
                     </Border>
 
-                    <Border Style="{StaticResource Card}" Margin="0,0,0,12" Padding="16,14">
+                    <Border Style="{StaticResource Card}" Margin="0,0,14,14" Padding="16,14">
                         <StackPanel>
                             <TextBlock Text="&#xE8AB;" Style="{StaticResource GlyphText}"
                                        FontSize="17" Foreground="{DynamicResource AccentBrush}" />
@@ -150,7 +150,7 @@
                         </StackPanel>
                     </Border>
 
-                    <Border Style="{StaticResource Card}" Margin="0,0,12,12" Padding="16,14">
+                    <Border Style="{StaticResource Card}" Margin="0,0,14,14" Padding="16,14">
                         <StackPanel>
                             <TextBlock Text="&#xE8DE;" Style="{StaticResource GlyphText}"
                                        FontSize="17" Foreground="{DynamicResource AccentBrush}" />
