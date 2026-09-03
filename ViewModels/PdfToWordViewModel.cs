@@ -12,12 +12,17 @@ public sealed partial class PdfToWordViewModel : ViewModelBase
     private const string PdfFilter = "Documentos PDF (*.pdf)|*.pdf";
 
     private readonly IPdfExportService _exportService;
+    private readonly ILibreOfficeInstallerService _installerService;
     private readonly IDialogService _dialogService;
 
-    public PdfToWordViewModel(IPdfExportService exportService, IDialogService dialogService)
+    public PdfToWordViewModel(
+        IPdfExportService exportService,
+        ILibreOfficeInstallerService installerService,
+        IDialogService dialogService)
         : base("PDF para Word", "")
     {
         _exportService = exportService;
+        _installerService = installerService;
         _dialogService = dialogService;
 
         OutputFolder = Path.Combine(
@@ -39,6 +44,61 @@ public sealed partial class PdfToWordViewModel : ViewModelBase
 
     /// <summary>Sem LibreOffice esta tela nao funciona; a UI avisa antes da tentativa.</summary>
     public bool IsLibreOfficeMissing => !_exportService.IsAvailable;
+
+    // ===== Instalacao do LibreOffice sem sair do app =====
+
+    [ObservableProperty] private bool _isDownloadingLibreOffice;
+    [ObservableProperty] private double _libreOfficeProgress;
+    [ObservableProperty] private string _libreOfficeStatus = string.Empty;
+
+    /// <summary>Baixa o instalador e oferece abri-lo; instalar continua sendo decisao do usuario.</summary>
+    [RelayCommand]
+    private async Task InstallLibreOfficeAsync()
+    {
+        try
+        {
+            IsDownloadingLibreOffice = true;
+            LibreOfficeProgress = 0;
+            LibreOfficeStatus = "Procurando a versao atual...";
+
+            var installer = await _installerService.FindLatestAsync();
+            LibreOfficeStatus = $"Baixando LibreOffice {installer.Version} (cerca de 350 MB)...";
+
+            var progress = new Progress<double>(p => LibreOfficeProgress = p);
+            var file = await _installerService.DownloadAsync(installer, progress);
+
+            LibreOfficeStatus = $"Instalador salvo em {file}";
+
+            if (_dialogService.Confirm(
+                    "Instalador baixado",
+                    $"LibreOffice {installer.Version} foi baixado.{Environment.NewLine}{Environment.NewLine}" +
+                    "Abrir o instalador agora? O Windows vai pedir permissao de administrador."))
+            {
+                _installerService.RunInstaller(file);
+                LibreOfficeStatus = "Instalador aberto. Quando terminar, use \"Ja instalei\".";
+            }
+        }
+        catch (Exception ex)
+        {
+            LibreOfficeStatus = $"Falha ao baixar: {ex.Message}";
+            _dialogService.ShowError("Erro ao baixar o LibreOffice", ex.Message);
+        }
+        finally
+        {
+            IsDownloadingLibreOffice = false;
+        }
+    }
+
+    /// <summary>Reavalia a presenca do LibreOffice depois de uma instalacao.</summary>
+    [RelayCommand]
+    private void RecheckLibreOffice()
+    {
+        OnPropertyChanged(nameof(IsLibreOfficeMissing));
+
+        LibreOfficeStatus = _exportService.IsAvailable
+            ? "LibreOffice encontrado. A conversao esta liberada."
+            : "Ainda nao encontrei o LibreOffice. Se acabou de instalar, conclua a instalacao e tente de novo.";
+    }
 
     private PdfExportFormat Format => ExportAsWord ? PdfExportFormat.Word : PdfExportFormat.PlainText;
 

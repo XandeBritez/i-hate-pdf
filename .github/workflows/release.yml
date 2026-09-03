@@ -41,6 +41,7 @@ jobs:
             -p:IncludeNativeLibrariesForSelfExtract=true `
             -p:DebugType=none `
             -p:DebugSymbols=false `
+            -p:AllowedReferenceRelatedFileExtensions=none `
             -p:Version=${{ steps.version.outputs.version }} `
             -p:AssemblyVersion=${{ steps.version.outputs.version }}.0 `
             -p:FileVersion=${{ steps.version.outputs.version }}.0 `

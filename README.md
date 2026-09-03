@@ -81,7 +81,7 @@ Recupera o texto de um PDF em um `.docx` editável (ou `.txt` puro), importando 
 
 O pacote é **self-contained**: não precisa instalar o .NET.
 
-> **DOCX e XLSX** precisam do [LibreOffice](https://www.libreoffice.org) instalado. O app acha o `soffice.exe` sozinho (registro, Program Files e PATH). Sem ele, TXT e todas as ferramentas de PDF continuam funcionando normalmente.
+> **DOCX, XLSX e PDF → Word** precisam do [LibreOffice](https://www.libreoffice.org). Você não precisa sair do app para isso: a tela **PDF para Word** tem um botão que descobre a versão estável atual, baixa o instalador oficial com barra de progresso e o abre para você. O app acha o `soffice.exe` sozinho depois (registro, Program Files e PATH). Sem ele, TXT e todas as ferramentas de PDF continuam funcionando normalmente.
 
 ### Atualizar
 

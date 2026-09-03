@@ -33,16 +33,45 @@
                 BorderBrush="{DynamicResource AccentBrush}"
                 BorderThickness="1"
                 Visibility="{Binding IsLibreOfficeMissing, Converter={StaticResource BoolToVisibility}}">
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Text="&#xE7BA;" Style="{StaticResource GlyphText}"
-                           FontSize="15" VerticalAlignment="Center"
-                           Foreground="{DynamicResource AccentBrush}" />
-                <TextBlock Margin="10,0,0,0"
-                           VerticalAlignment="Center"
-                           FontSize="12.5"
+            <StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="&#xE7BA;" Style="{StaticResource GlyphText}"
+                               FontSize="15" VerticalAlignment="Top" Margin="0,1,0,0"
+                               Foreground="{DynamicResource AccentBrush}" />
+                    <TextBlock Margin="10,0,0,0"
+                               MaxWidth="720"
+                               HorizontalAlignment="Left"
+                               FontSize="12.5"
+                               TextWrapping="Wrap"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
+                               Text="Esta ferramenta precisa do LibreOffice. Baixe por aqui mesmo: o app pega o instalador oficial e abre para voce. O resto do app funciona sem ele." />
+                </StackPanel>
+
+                <ProgressBar Height="4"
+                             Margin="25,12,0,0"
+                             Minimum="0" Maximum="100"
+                             Value="{Binding LibreOfficeProgress}"
+                             Foreground="{DynamicResource AccentBrush}"
+                             Background="{DynamicResource BorderBrushSoft}"
+                             BorderThickness="0"
+                             Visibility="{Binding IsDownloadingLibreOffice, Converter={StaticResource BoolToVisibility}}" />
+
+                <TextBlock Text="{Binding LibreOfficeStatus}"
+                           Margin="25,8,0,0"
+                           FontSize="11.5"
                            TextWrapping="Wrap"
-                           Foreground="{DynamicResource TextPrimaryBrush}"
-                           Text="Esta ferramenta precisa do LibreOffice instalado (libreoffice.org). O resto do app funciona sem ele." />
+                           Foreground="{DynamicResource TextSecondaryBrush}"
+                           Visibility="{Binding LibreOfficeStatus, Converter={StaticResource EmptyToVisibility}, ConverterParameter=invert}" />
+
+                <WrapPanel Margin="25,12,0,0">
+                    <Button Content="Baixar e instalar LibreOffice"
+                            Style="{StaticResource PrimaryButton}"
+                            IsEnabled="{Binding IsDownloadingLibreOffice, Converter={StaticResource InverseBool}}"
+                            Command="{Binding InstallLibreOfficeCommand}" />
+                    <Button Content="Ja instalei"
+                            Style="{StaticResource GhostButton}"
+                            Command="{Binding RecheckLibreOfficeCommand}" />
+                </WrapPanel>
             </StackPanel>
         </Border>
 
