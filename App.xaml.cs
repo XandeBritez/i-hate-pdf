@@ -50,6 +50,7 @@ public partial class App : Application
         services.AddSingleton<IPdfRenderService, PdfRenderService>();
         services.AddSingleton<IDialogService, DialogService>();
         services.AddSingleton<IUpdateService, GitHubUpdateService>();
+        services.AddSingleton<IApplicationService, ApplicationService>();
         services.AddSingleton<IPdfExportService, PdfExportService>();
         services.AddSingleton<ILibreOfficeInstallerService, LibreOfficeInstallerService>();
 

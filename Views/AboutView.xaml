@@ -76,7 +76,7 @@
                                Foreground="{DynamicResource TextPrimaryBrush}" />
                     <TextBlock Style="{StaticResource SubtitleText}"
                                Margin="0,4,0,0"
-                               Text="O app consulta as releases do repositorio e baixa o pacote para a sua pasta Downloads." />
+                               Text="O app verifica as releases do repositorio, baixa a versao nova, se substitui e reabre sozinho." />
 
                     <TextBlock Text="{Binding UpdateStatus}"
                                Margin="0,14,0,0"
@@ -98,7 +98,7 @@
                                 Style="{StaticResource PrimaryButton}"
                                 IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}"
                                 Command="{Binding CheckForUpdatesCommand}" />
-                        <Button Content="Baixar nova versao"
+                        <Button Content="Atualizar agora"
                                 Style="{StaticResource GhostButton}"
                                 Command="{Binding DownloadUpdateCommand}"
                                 Visibility="{Binding HasUpdate, Converter={StaticResource BoolToVisibility}}" />

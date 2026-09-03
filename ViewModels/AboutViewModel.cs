@@ -8,14 +8,19 @@ namespace IHatePdf.ViewModels;
 public sealed partial class AboutViewModel : ViewModelBase
 {
     private readonly IUpdateService _updateService;
+    private readonly IApplicationService _applicationService;
     private readonly IDialogService _dialogService;
 
     private UpdateInfo? _lastCheck;
 
-    public AboutViewModel(IUpdateService updateService, IDialogService dialogService)
+    public AboutViewModel(
+        IUpdateService updateService,
+        IApplicationService applicationService,
+        IDialogService dialogService)
         : base("Sobre", "")
     {
         _updateService = updateService;
+        _applicationService = applicationService;
         _dialogService = dialogService;
     }
 
@@ -68,12 +73,16 @@ public sealed partial class AboutViewModel : ViewModelBase
         }
     }
 
+    /// <summary>
+    /// Atualizacao completa sem sair do app: baixa o pacote, extrai o
+    /// executavel novo e dispara a troca com reinicio automatico.
+    /// </summary>
     [RelayCommand(CanExecute = nameof(HasUpdate))]
     private async Task DownloadUpdateAsync()
     {
         if (_lastCheck is null) return;
 
-        // Release sem pacote anexado: manda o usuario para a pagina da release.
+        // Release sem pacote anexado: nao ha o que instalar automaticamente.
         if (string.IsNullOrWhiteSpace(_lastCheck.DownloadUrl))
         {
             if (_lastCheck.ReleasePageUrl is not null)
@@ -81,22 +90,45 @@ public sealed partial class AboutViewModel : ViewModelBase
             return;
         }
 
+        // Pasta somente leitura (ex.: Program Files) exigiria elevacao:
+        // avisa e oferece o download manual em vez de falhar no meio da troca.
+        if (!_updateService.CanUpdateInPlace(out var reason))
+        {
+            UpdateStatus = reason;
+            if (_dialogService.Confirm("Atualizacao automatica indisponivel", reason + " Abrir a pagina da release?")
+                && _lastCheck.ReleasePageUrl is not null)
+            {
+                _updateService.OpenInBrowser(_lastCheck.ReleasePageUrl);
+            }
+            return;
+        }
+
+        if (!_dialogService.Confirm(
+                "Atualizar agora",
+                $"O app vai baixar a versao {_lastCheck.LatestVersion}, fechar e reabrir sozinho.{Environment.NewLine}{Environment.NewLine}" +
+                "Salve o que estiver em andamento antes de continuar."))
+        {
+            return;
+        }
+
         try
         {
             IsDownloading = true;
             DownloadProgress = 0;
-            UpdateStatus = $"Baixando {_lastCheck.DownloadFileName}...";
+            UpdateStatus = $"Baixando a versao {_lastCheck.LatestVersion}...";
 
             var progress = new Progress<double>(p => DownloadProgress = p);
-            var file = await _updateService.DownloadAsync(_lastCheck, progress);
+            var staged = await _updateService.DownloadAndStageAsync(_lastCheck, progress);
 
-            UpdateStatus = $"Baixado em {file}";
-            _updateService.RevealInExplorer(file);
+            UpdateStatus = "Aplicando a atualizacao. O app vai reabrir em instantes...";
+
+            _updateService.ApplyUpdateAndRestart(staged);
+            _applicationService.Shutdown();
         }
         catch (Exception ex)
         {
-            UpdateStatus = $"Falha no download: {ex.Message}";
-            _dialogService.ShowError("Erro ao baixar", ex.Message);
+            UpdateStatus = $"Falha ao atualizar: {ex.Message}";
+            _dialogService.ShowError("Erro ao atualizar", ex.Message);
         }
         finally
         {

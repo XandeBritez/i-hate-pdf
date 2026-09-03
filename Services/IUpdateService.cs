@@ -31,6 +31,24 @@ public interface IUpdateService
     /// <summary>Baixa o asset da release e devolve o caminho local do arquivo.</summary>
     Task<string> DownloadAsync(UpdateInfo update, IProgress<double>? progress = null, CancellationToken ct = default);
 
+    /// <summary>
+    /// Baixa a release, extrai o pacote e devolve o caminho do executavel novo,
+    /// pronto para substituir o atual. Nada e alterado na instalacao ainda.
+    /// </summary>
+    Task<string> DownloadAndStageAsync(UpdateInfo update, IProgress<double>? progress = null, CancellationToken ct = default);
+
+    /// <summary>
+    /// Verifica se o executavel atual pode ser sobrescrito (pasta gravavel).
+    /// Instalacoes em Program Files exigiriam elevacao e sao recusadas aqui.
+    /// </summary>
+    bool CanUpdateInPlace(out string reason);
+
+    /// <summary>
+    /// Dispara o script que espera este processo encerrar, troca o executavel
+    /// e reabre o app. Chame <see cref="IApplicationService.Shutdown"/> em seguida.
+    /// </summary>
+    void ApplyUpdateAndRestart(string stagedExecutablePath);
+
     /// <summary>Abre uma URL no navegador padrao.</summary>
     void OpenInBrowser(string url);
 

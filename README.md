@@ -85,7 +85,9 @@ O pacote é **self-contained**: não precisa instalar o .NET.
 
 ### Atualizar
 
-A tela **Sobre** consulta as releases deste repositório, diz se há versão nova e baixa o pacote para a sua pasta Downloads.
+A tela **Sobre** verifica as releases deste repositório e, se houver versão nova, **atualiza sozinha**: baixa o pacote, se substitui e reabre já na versão nova. Nada de zip para você extrair na mão.
+
+> Um `.exe` em execução não pode sobrescrever a si mesmo, então o app grava um script temporário que espera o processo encerrar, troca o arquivo e reabre. O executável atual vira `.old` antes da cópia e é restaurado se algo falhar no meio. Se o app estiver numa pasta sem permissão de escrita (Program Files, por exemplo), ele avisa e manda você para a página da release em vez de tentar e falhar.
 
 <div align="center">
 <img src="docs/screenshots/sobre.png" alt="Tela Sobre com verificação de atualizações" width="820" />
