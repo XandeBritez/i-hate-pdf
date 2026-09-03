@@ -57,6 +57,16 @@ Abra um PDF e veja **cada página como miniatura**. Marque as que morrem, arrast
 </tr>
 </table>
 
+### 📤 E o caminho de volta: PDF → Word
+
+Recupera o texto de um PDF em um `.docx` editável (ou `.txt` puro), importando pelo Writer do LibreOffice.
+
+> **Honestidade sobre o formato:** o PDF descreve *posições de glifos*, não parágrafos. O texto sai bem; layout complexo — colunas, tabelas, caixas — é reconstruído por aproximação. E um PDF **escaneado não tem texto algum**: viraria um documento vazio, porque este app não faz OCR.
+
+<div align="center">
+<img src="docs/screenshots/pdf-para-word.png" alt="Tela PDF para Word" width="820" />
+</div>
+
 <div align="center">
 <img src="docs/screenshots/editar.png" alt="Editor visual de páginas" width="820" />
 </div>
@@ -107,10 +117,11 @@ MVVM estrito com `CommunityToolkit.Mvvm` — nenhuma View tem lógica no code-be
 
 ```
 Models/         PageReference, PdfFileItem, PageItem, ConversionItem
-Services/       PdfService · ConversionService (+converters) · PdfRenderService
-                WindowsFontResolver · GitHubUpdateService · DialogService
-ViewModels/     Main · Merge · Editor · Converter · About
-Views/          MergeView · EditorView · ConverterView · AboutView
+Services/       PdfService · ConversionService (+converters) · PdfExportService
+                LibreOfficeRunner · PdfRenderService · WindowsFontResolver
+                GitHubUpdateService · DialogService
+ViewModels/     Main · Merge · Editor · Converter · PdfToWord · About
+Views/          MergeView · EditorView · ConverterView · PdfToWordView · AboutView
 Behaviors/      FileDropBehavior (drop do Explorer → ICommand) · conversores
 Themes/         Light · Dark · Styles
 ```
@@ -121,7 +132,7 @@ Themes/         Light · Dark · Styles
 | Miniaturas | [PDFtoImage](https://www.nuget.org/packages/PDFtoImage) (PDFium) | renderiza cada página como bitmap |
 | MVVM | [CommunityToolkit.Mvvm](https://www.nuget.org/packages/CommunityToolkit.Mvvm) | bindings, comandos, messenger |
 | Arrastar cards | [gong-wpf-dragdrop](https://www.nuget.org/packages/gong-wpf-dragdrop) | reordenação dentro das listas |
-| DOCX / XLSX | LibreOffice `--headless` | conversão de Office para PDF |
+| DOCX / XLSX | LibreOffice `--headless` | Office → PDF e PDF → Word (`writer_pdf_import`) |
 
 **A ideia central:** toda operação de página é a mesma primitiva.
 
@@ -144,6 +155,7 @@ Detalhes que custam caro quando ficam de fora:
 
 - Operações de página copiam o conteúdo: **anotações, campos de formulário e sumário (outlines) não são preservados**.
 - PDFs protegidos por senha não abrem — não há UI de senha.
+- **PDF → Word não faz OCR**: PDF escaneado (imagem pura) não tem texto para extrair.
 - Windows apenas. WPF não é multiplataforma.
 
 ---
@@ -152,6 +164,6 @@ Detalhes que custam caro quando ficam de fora:
 
 <img src="Assets/logo-mark.png" alt="" width="72" />
 
-**Feito por [XandeBritez](https://github.com/XandeBritez)** · [Reportar um problema](https://github.com/XandeBritez/i-hate-pdf/issues)
+**Feito por Alexandre Britez Borsuka** ([@XandeBritez](https://github.com/XandeBritez)) · [Reportar um problema](https://github.com/XandeBritez/i-hate-pdf/issues)
 
 </div>

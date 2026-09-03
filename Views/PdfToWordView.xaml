@@ -1,0 +1,190 @@
+<UserControl x:Class="IHatePdf.Views.PdfToWordView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:models="clr-namespace:IHatePdf.Models"
+             xmlns:vm="clr-namespace:IHatePdf.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             d:DataContext="{d:DesignInstance Type=vm:PdfToWordViewModel}"
+             mc:Ignorable="d">
+
+    <Grid Margin="28,24,28,20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <TextBlock Text="PDF para Word" Style="{StaticResource TitleText}" />
+            <TextBlock Style="{StaticResource SubtitleText}" Margin="0,4,0,0"
+                       Text="Recupera o texto do PDF em um .docx editavel. O PDF guarda posicoes de glifos, nao paragrafos: o texto sai bem, mas layout complexo (colunas, tabelas) e aproximado e PDF escaneado nao tem texto para extrair." />
+        </StackPanel>
+
+        <!-- Aviso de dependencia ausente, antes de o usuario tentar e falhar -->
+        <Border Grid.Row="1"
+                Margin="0,16,0,0"
+                Padding="14,11"
+                CornerRadius="10"
+                Background="{DynamicResource AccentSoftBrush}"
+                BorderBrush="{DynamicResource AccentBrush}"
+                BorderThickness="1"
+                Visibility="{Binding IsLibreOfficeMissing, Converter={StaticResource BoolToVisibility}}">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="&#xE7BA;" Style="{StaticResource GlyphText}"
+                           FontSize="15" VerticalAlignment="Center"
+                           Foreground="{DynamicResource AccentBrush}" />
+                <TextBlock Margin="10,0,0,0"
+                           VerticalAlignment="Center"
+                           FontSize="12.5"
+                           TextWrapping="Wrap"
+                           Foreground="{DynamicResource TextPrimaryBrush}"
+                           Text="Esta ferramenta precisa do LibreOffice instalado (libreoffice.org). O resto do app funciona sem ele." />
+            </StackPanel>
+        </Border>
+
+        <WrapPanel Grid.Row="2" Orientation="Horizontal" Margin="0,18,0,12">
+            <Button Content="Adicionar PDFs" Style="{StaticResource GhostButton}" Margin="0,0,26,8" Command="{Binding AddFilesCommand}" />
+            <Button Content="Remover" Style="{StaticResource GhostButton}" Command="{Binding RemoveCommand}" />
+            <Button Content="Limpar" Style="{StaticResource GhostButton}" Margin="0,0,0,8" Command="{Binding ClearCommand}" />
+        </WrapPanel>
+
+        <!-- Formato e pasta de saida -->
+        <Border Grid.Row="3" Style="{StaticResource Card}" Margin="0,0,0,14">
+            <StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Gerar"
+                               VerticalAlignment="Center"
+                               Margin="0,0,14,0"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               FontSize="12.5" />
+
+                    <RadioButton Content="Word (.docx)"
+                                 GroupName="Formato"
+                                 IsChecked="{Binding ExportAsWord}"
+                                 VerticalAlignment="Center"
+                                 Margin="0,0,18,0"
+                                 Foreground="{DynamicResource TextPrimaryBrush}" />
+
+                    <RadioButton Content="Texto puro (.txt)"
+                                 GroupName="Formato"
+                                 VerticalAlignment="Center"
+                                 Foreground="{DynamicResource TextPrimaryBrush}" />
+                </StackPanel>
+
+                <Grid Margin="0,14,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0" Text="Pasta de saida"
+                               VerticalAlignment="Center"
+                               Margin="0,0,12,0"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               FontSize="12.5" />
+
+                    <TextBox Grid.Column="1" Text="{Binding OutputFolder, UpdateSourceTrigger=PropertyChanged}"
+                             VerticalAlignment="Center" />
+
+                    <Button Grid.Column="2" Content="Escolher..."
+                            Margin="12,0,0,0"
+                            Style="{StaticResource GhostButton}"
+                            Command="{Binding ChooseOutputFolderCommand}" />
+
+                    <Button Grid.Column="3" Content="Abrir pasta"
+                            Margin="8,0,0,0"
+                            Style="{StaticResource GhostButton}"
+                            Command="{Binding OpenOutputFolderCommand}" />
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="4" Style="{StaticResource DropZoneBorder}">
+            <Grid>
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
+                            Visibility="{Binding Items.Count, Converter={StaticResource EmptyToVisibility}}">
+                    <TextBlock Text="&#xE8E5;" Style="{StaticResource GlyphText}"
+                               FontSize="42" HorizontalAlignment="Center"
+                               Foreground="{DynamicResource TextSecondaryBrush}" />
+                    <TextBlock Text="Solte os PDFs que viram Word aqui"
+                               FontSize="15" Margin="0,12,0,0" HorizontalAlignment="Center"
+                               Foreground="{DynamicResource TextPrimaryBrush}" />
+                </StackPanel>
+
+                <ListBox ItemsSource="{Binding Items}"
+                         SelectedItem="{Binding SelectedItem}"
+                         Style="{StaticResource PlainListBox}"
+                         Visibility="{Binding Items.Count, Converter={StaticResource EmptyToVisibility}, ConverterParameter=invert}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid ToolTip="{Binding ErrorMessage}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0" Width="40" Height="34" CornerRadius="8"
+                                        Background="{DynamicResource AccentSoftBrush}"
+                                        VerticalAlignment="Center">
+                                    <TextBlock Text="PDF"
+                                               FontSize="10.5"
+                                               FontWeight="SemiBold"
+                                               Foreground="{DynamicResource AccentBrush}"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center" />
+                                </Border>
+
+                                <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding FileName}"
+                                               FontSize="13.5"
+                                               TextTrimming="CharacterEllipsis"
+                                               Foreground="{DynamicResource TextPrimaryBrush}" />
+                                    <TextBlock Text="{Binding SourcePath}"
+                                               Style="{StaticResource SubtitleText}"
+                                               FontSize="11"
+                                               TextTrimming="CharacterEllipsis" />
+                                </StackPanel>
+
+                                <TextBlock x:Name="StatusText"
+                                           Grid.Column="2"
+                                           VerticalAlignment="Center"
+                                           FontSize="12"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           Text="{Binding Status, Converter={StaticResource ConversionStatusToText}}" />
+                            </Grid>
+
+                            <DataTemplate.Triggers>
+                                <DataTrigger Binding="{Binding Status}" Value="{x:Static models:ConversionStatus.Concluido}">
+                                    <Setter TargetName="StatusText" Property="Foreground" Value="{DynamicResource SuccessBrush}" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Status}" Value="{x:Static models:ConversionStatus.Erro}">
+                                    <Setter TargetName="StatusText" Property="Foreground" Value="{DynamicResource ErrorBrush}" />
+                                </DataTrigger>
+                            </DataTemplate.Triggers>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="5" Margin="0,16,0,0">
+            <TextBlock Text="{Binding StatusMessage}"
+                       VerticalAlignment="Center"
+                       TextTrimming="CharacterEllipsis"
+                       Style="{StaticResource SubtitleText}" />
+            <Button Content="Converter tudo"
+                    HorizontalAlignment="Right"
+                    Style="{StaticResource PrimaryButton}"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}"
+                    Command="{Binding ConvertAllCommand}" />
+        </Grid>
+    </Grid>
+</UserControl>

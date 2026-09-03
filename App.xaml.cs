@@ -50,6 +50,7 @@ public partial class App : Application
         services.AddSingleton<IPdfRenderService, PdfRenderService>();
         services.AddSingleton<IDialogService, DialogService>();
         services.AddSingleton<IUpdateService, GitHubUpdateService>();
+        services.AddSingleton<IPdfExportService, PdfExportService>();
 
         // Estrategias de conversao: trocar LibreOfficeConverter por um conversor
         // Syncfusion aqui muda o backend de DOCX/XLSX sem tocar no resto do app.
@@ -61,6 +62,7 @@ public partial class App : Application
         services.AddSingleton<MergeViewModel>();
         services.AddSingleton<EditorViewModel>();
         services.AddSingleton<ConverterViewModel>();
+        services.AddSingleton<PdfToWordViewModel>();
         services.AddSingleton<AboutViewModel>();
         services.AddSingleton<MainViewModel>();
 
