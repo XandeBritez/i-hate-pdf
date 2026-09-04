@@ -28,6 +28,7 @@ public sealed partial class MainViewModel : ObservableObject
         MergeViewModel merge,
         EditorViewModel editor,
         ConverterViewModel converter,
+        CompressViewModel compress,
         PdfToWordViewModel pdfToWord,
         AboutViewModel about,
         IMessenger messenger)
@@ -36,16 +37,18 @@ public sealed partial class MainViewModel : ObservableObject
         Merge = merge;
         Editor = editor;
         Converter = converter;
+        Compress = compress;
         PdfToWord = pdfToWord;
         About = about;
 
-        Pages = new ObservableCollection<ViewModelBase> { merge, editor, converter, pdfToWord, about };
+        Pages = new ObservableCollection<ViewModelBase> { merge, editor, compress, converter, pdfToWord, about };
         _currentPage = merge;
     }
 
     public MergeViewModel Merge { get; }
     public EditorViewModel Editor { get; }
     public ConverterViewModel Converter { get; }
+    public CompressViewModel Compress { get; }
     public PdfToWordViewModel PdfToWord { get; }
     public AboutViewModel About { get; }
 
@@ -93,7 +96,8 @@ public sealed partial class MainViewModel : ObservableObject
         // O editor trabalha com um documento por vez: so recebe o drop se ja estiver ativo.
         var target = CurrentPage switch
         {
-            // PDF -> Word so aceita PDF; qualquer outra coisa vai para o conversor.
+            // Comprimir e PDF -> Word so aceitam PDF; o resto vai para o conversor.
+            CompressViewModel when !allPdf => Converter,
             PdfToWordViewModel when !allPdf => Converter,
             AboutViewModel => allPdf ? Merge : (ViewModelBase)Converter,
             EditorViewModel when allPdf => Editor,

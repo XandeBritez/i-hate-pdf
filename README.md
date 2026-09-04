@@ -57,6 +57,28 @@ Abra um PDF e veja **cada página como miniatura**. Marque as que morrem, arrast
 </tr>
 </table>
 
+### 🗜️ Comprimir
+
+Dois modos, porque não existe um só que sirva para tudo:
+
+- **Otimizar** reescreve o arquivo com os fluxos comprimidos. O texto continua selecionável; o ganho depende de quanto o gerador original desperdiçou.
+- **Reduzir imagens** rasteriza cada página em JPEG (200 / 150 / 110 dpi). É o que realmente encolhe digitalizações — mas o documento **deixa de ter texto selecionável**, e o app avisa antes quantos arquivos da fila perderiam isso.
+
+Medido num PDF de 8 páginas cheias de imagem:
+
+| Modo | Antes | Depois | Ganho |
+|---|---|---|---|
+| Otimizar | 776 KB | 776 KB | — (já otimizado) |
+| Reduzir · alta | 776 KB | 184 KB | **76%** |
+| Reduzir · equilibrada | 776 KB | 100 KB | **87%** |
+| Reduzir · máxima | 776 KB | 60 KB | **92%** |
+
+> Se a cópia não ficar menor que a entrada, o **original é mantido** e o app diz "já estava otimizado" — comprimir nunca devolve um arquivo pior. E a saída sai com sufixo `-comprimido`: seu arquivo original nunca é sobrescrito.
+
+<div align="center">
+<img src="docs/screenshots/comprimir.png" alt="Tela de compressão" width="820" />
+</div>
+
 ### 📤 E o caminho de volta: PDF → Word
 
 Recupera o conteúdo de um PDF em um `.docx` editável (via Writer do LibreOffice) ou em `.txt` puro (extração nativa com PdfPig, **sem depender de nada instalado**).
@@ -130,11 +152,13 @@ MVVM estrito com `CommunityToolkit.Mvvm` — nenhuma View tem lógica no code-be
 
 ```
 Models/         PageReference, PdfFileItem, PageItem, ConversionItem
-Services/       PdfService · ConversionService (+converters) · PdfExportService
+Services/       PdfService · ConversionService (+converters) · PdfCompressionService
+                PdfExportService
                 LibreOfficeRunner · PdfRenderService · WindowsFontResolver
                 GitHubUpdateService · DialogService
-ViewModels/     Main · Merge · Editor · Converter · PdfToWord · About
-Views/          MergeView · EditorView · ConverterView · PdfToWordView · AboutView
+ViewModels/     Main · Merge · Editor · Compress · Converter · PdfToWord · About
+Views/          MergeView · EditorView · CompressView · ConverterView
+                PdfToWordView · AboutView
 Behaviors/      FileDropBehavior (drop do Explorer → ICommand) · conversores
 Themes/         Light · Dark · Styles
 ```
@@ -146,7 +170,8 @@ Themes/         Light · Dark · Styles
 | MVVM | [CommunityToolkit.Mvvm](https://www.nuget.org/packages/CommunityToolkit.Mvvm) | bindings, comandos, messenger |
 | Arrastar cards | [gong-wpf-dragdrop](https://www.nuget.org/packages/gong-wpf-dragdrop) | reordenação dentro das listas |
 | DOCX / XLSX | LibreOffice `--headless` | Office → PDF e PDF → Word (`writer_pdf_import`) |
-| Extração de texto | [PdfPig](https://www.nuget.org/packages/PdfPig) | PDF → TXT sem dependência externa |
+| Extração de texto | [PdfPig](https://www.nuget.org/packages/PdfPig) | PDF → TXT e detecção de texto, sem dependência externa |
+| Recompressão | [SkiaSharp](https://www.nuget.org/packages/SkiaSharp) | reencoda as páginas rasterizadas em JPEG |
 
 **A ideia central:** toda operação de página é a mesma primitiva.
 

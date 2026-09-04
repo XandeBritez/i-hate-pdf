@@ -52,6 +52,7 @@ public partial class App : Application
         services.AddSingleton<IUpdateService, GitHubUpdateService>();
         services.AddSingleton<IApplicationService, ApplicationService>();
         services.AddSingleton<IPdfExportService, PdfExportService>();
+        services.AddSingleton<IPdfCompressionService, PdfCompressionService>();
         services.AddSingleton<ILibreOfficeInstallerService, LibreOfficeInstallerService>();
 
         // Estrategias de conversao: trocar LibreOfficeConverter por um conversor
@@ -64,6 +65,7 @@ public partial class App : Application
         services.AddSingleton<MergeViewModel>();
         services.AddSingleton<EditorViewModel>();
         services.AddSingleton<ConverterViewModel>();
+        services.AddSingleton<CompressViewModel>();
         services.AddSingleton<PdfToWordViewModel>();
         services.AddSingleton<AboutViewModel>();
         services.AddSingleton<MainViewModel>();

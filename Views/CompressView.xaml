@@ -1,0 +1,238 @@
+<UserControl x:Class="IHatePdf.Views.CompressView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:models="clr-namespace:IHatePdf.Models"
+             xmlns:vm="clr-namespace:IHatePdf.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             d:DataContext="{d:DesignInstance Type=vm:CompressViewModel}"
+             mc:Ignorable="d">
+
+    <Grid Margin="28,24,28,20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <TextBlock Text="Comprimir PDF" Style="{StaticResource TitleText}" />
+            <TextBlock Style="{StaticResource SubtitleText}" Margin="0,4,0,0"
+                       Text="Gera uma copia menor ao lado do original, que nunca e alterado. Se a copia nao ficar menor que a entrada, o arquivo original e mantido." />
+        </StackPanel>
+
+        <WrapPanel Grid.Row="1" Orientation="Horizontal" Margin="0,18,0,12">
+            <Button Content="Adicionar PDFs" Style="{StaticResource GhostButton}" Margin="0,0,26,8" Command="{Binding AddFilesCommand}" />
+            <Button Content="Remover" Style="{StaticResource GhostButton}" Command="{Binding RemoveCommand}" />
+            <Button Content="Limpar" Style="{StaticResource GhostButton}" Margin="0,0,0,8" Command="{Binding ClearCommand}" />
+        </WrapPanel>
+
+        <!-- Modo, intensidade e pasta -->
+        <Border Grid.Row="2" Style="{StaticResource Card}" Margin="0,0,0,14" Padding="14,12">
+            <StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Modo"
+                               VerticalAlignment="Center"
+                               Margin="0,0,14,0"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               FontSize="12.5" />
+
+                    <RadioButton GroupName="Modo"
+                                 IsChecked="{Binding Rasterize, Converter={StaticResource InverseBool}}"
+                                 VerticalAlignment="Center"
+                                 Margin="0,0,18,0"
+                                 Foreground="{DynamicResource TextPrimaryBrush}"
+                                 ToolTip="Reescreve o arquivo com os fluxos comprimidos. Nada e degradado.">
+                        <TextBlock>
+                            <Run Text="Otimizar" FontWeight="SemiBold" />
+                            <Run Text="- mantem o texto, ganho modesto" Foreground="{DynamicResource TextSecondaryBrush}" />
+                        </TextBlock>
+                    </RadioButton>
+
+                    <RadioButton GroupName="Modo"
+                                 IsChecked="{Binding Rasterize}"
+                                 VerticalAlignment="Center"
+                                 Foreground="{DynamicResource TextPrimaryBrush}"
+                                 ToolTip="Cada pagina vira uma imagem JPEG. Encolhe muito digitalizacoes.">
+                        <TextBlock>
+                            <Run Text="Reduzir imagens" FontWeight="SemiBold" />
+                            <Run Text="- encolhe muito, vira imagem" Foreground="{DynamicResource TextSecondaryBrush}" />
+                        </TextBlock>
+                    </RadioButton>
+                </StackPanel>
+
+                <!-- Intensidade so importa no modo que rasteriza -->
+                <StackPanel Orientation="Horizontal"
+                            Margin="0,12,0,0"
+                            Visibility="{Binding Rasterize, Converter={StaticResource BoolToVisibility}}">
+                    <TextBlock Text="Qualidade"
+                               VerticalAlignment="Center"
+                               Margin="0,0,14,0"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               FontSize="12.5" />
+
+                    <RadioButton Content="Alta (200 dpi)" GroupName="Nivel"
+                                 IsChecked="{Binding StrengthHigh}"
+                                 VerticalAlignment="Center" Margin="0,0,18,0"
+                                 Foreground="{DynamicResource TextPrimaryBrush}"
+                                 ToolTip="Boa para imprimir" />
+                    <RadioButton Content="Equilibrada (150 dpi)" GroupName="Nivel"
+                                 IsChecked="{Binding StrengthBalanced}"
+                                 VerticalAlignment="Center" Margin="0,0,18,0"
+                                 Foreground="{DynamicResource TextPrimaryBrush}"
+                                 ToolTip="Leitura em tela" />
+                    <RadioButton Content="Maxima (110 dpi)" GroupName="Nivel"
+                                 IsChecked="{Binding StrengthMaximum}"
+                                 VerticalAlignment="Center"
+                                 Foreground="{DynamicResource TextPrimaryBrush}"
+                                 ToolTip="O menor arquivo possivel" />
+                </StackPanel>
+
+                <!-- Aviso: rasterizar destroi o texto de quem tem texto -->
+                <Border Margin="0,12,0,0"
+                        Padding="10,8"
+                        CornerRadius="8"
+                        Background="{DynamicResource AccentSoftBrush}"
+                        BorderBrush="{DynamicResource AccentBrush}"
+                        BorderThickness="1"
+                        Visibility="{Binding ShowTextWarning, Converter={StaticResource BoolToVisibility}}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE7BA;" Style="{StaticResource GlyphText}"
+                                   FontSize="14" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource AccentBrush}" />
+                        <TextBlock Margin="9,0,0,0"
+                                   VerticalAlignment="Center"
+                                   FontSize="12"
+                                   TextWrapping="Wrap"
+                                   Foreground="{DynamicResource TextPrimaryBrush}">
+                            <Run Text="{Binding FilesWithText, Mode=OneWay}" FontWeight="SemiBold" />
+                            <Run Text="arquivo(s) da fila tem texto selecionavel. Neste modo eles viram imagem: nao dara mais para copiar nem buscar o texto." />
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+
+                <Grid Margin="0,14,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0" Text="Pasta de saida"
+                               VerticalAlignment="Center"
+                               Margin="0,0,12,0"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               FontSize="12.5" />
+
+                    <TextBox Grid.Column="1" Text="{Binding OutputFolder, UpdateSourceTrigger=PropertyChanged}"
+                             VerticalAlignment="Center" />
+
+                    <Button Grid.Column="2" Content="Escolher..."
+                            Margin="12,0,0,0"
+                            Style="{StaticResource GhostButton}"
+                            Command="{Binding ChooseOutputFolderCommand}" />
+
+                    <Button Grid.Column="3" Content="Abrir pasta"
+                            Margin="8,0,0,0"
+                            Style="{StaticResource GhostButton}"
+                            Command="{Binding OpenOutputFolderCommand}" />
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="3" Style="{StaticResource DropZoneBorder}">
+            <Grid>
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
+                            Visibility="{Binding Items.Count, Converter={StaticResource EmptyToVisibility}}">
+                    <TextBlock Text="&#xE8E5;" Style="{StaticResource GlyphText}"
+                               FontSize="42" HorizontalAlignment="Center"
+                               Foreground="{DynamicResource TextSecondaryBrush}" />
+                    <TextBlock Text="Solte aqui os PDFs que estao pesados demais"
+                               FontSize="15" Margin="0,12,0,0" HorizontalAlignment="Center"
+                               Foreground="{DynamicResource TextPrimaryBrush}" />
+                </StackPanel>
+
+                <ListBox ItemsSource="{Binding Items}"
+                         SelectedItem="{Binding SelectedItem}"
+                         Style="{StaticResource PlainListBox}"
+                         Visibility="{Binding Items.Count, Converter={StaticResource EmptyToVisibility}, ConverterParameter=invert}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid ToolTip="{Binding ErrorMessage}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0" Width="40" Height="34" CornerRadius="8"
+                                        Background="{DynamicResource AccentSoftBrush}"
+                                        VerticalAlignment="Center">
+                                    <TextBlock Text="PDF"
+                                               FontSize="10.5"
+                                               FontWeight="SemiBold"
+                                               Foreground="{DynamicResource AccentBrush}"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center" />
+                                </Border>
+
+                                <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding FileName}"
+                                               FontSize="13.5"
+                                               TextTrimming="CharacterEllipsis"
+                                               Foreground="{DynamicResource TextPrimaryBrush}" />
+                                    <TextBlock Text="{Binding DisplaySaving}"
+                                               Style="{StaticResource SubtitleText}"
+                                               FontSize="11.5" />
+                                </StackPanel>
+
+                                <TextBlock x:Name="StatusText"
+                                           Grid.Column="2"
+                                           VerticalAlignment="Center"
+                                           FontSize="12"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           Text="{Binding Status, Converter={StaticResource ConversionStatusToText}}" />
+                            </Grid>
+
+                            <DataTemplate.Triggers>
+                                <DataTrigger Binding="{Binding Status}" Value="{x:Static models:ConversionStatus.Concluido}">
+                                    <Setter TargetName="StatusText" Property="Foreground" Value="{DynamicResource SuccessBrush}" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Status}" Value="{x:Static models:ConversionStatus.Erro}">
+                                    <Setter TargetName="StatusText" Property="Foreground" Value="{DynamicResource ErrorBrush}" />
+                                </DataTrigger>
+                            </DataTemplate.Triggers>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="4" Margin="0,16,0,0">
+            <StackPanel VerticalAlignment="Center" Margin="0,0,180,0">
+                <TextBlock Text="{Binding StatusMessage}"
+                           TextTrimming="CharacterEllipsis"
+                           Style="{StaticResource SubtitleText}" />
+                <ProgressBar Height="4"
+                             Margin="0,6,0,0"
+                             Minimum="0" Maximum="100"
+                             Value="{Binding Progress}"
+                             Foreground="{DynamicResource AccentBrush}"
+                             Background="{DynamicResource BorderBrushSoft}"
+                             BorderThickness="0"
+                             Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}" />
+            </StackPanel>
+
+            <Button Content="Comprimir tudo"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    Style="{StaticResource PrimaryButton}"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}"
+                    Command="{Binding CompressAllCommand}" />
+        </Grid>
+    </Grid>
+</UserControl>

@@ -152,6 +152,17 @@
 
                     <Border Style="{StaticResource Card}" Margin="0,0,14,14" Padding="16,14">
                         <StackPanel>
+                            <TextBlock Text="&#xE73F;" Style="{StaticResource GlyphText}"
+                                       FontSize="17" Foreground="{DynamicResource AccentBrush}" />
+                            <TextBlock Text="Comprimir" Margin="0,8,0,0" FontWeight="SemiBold" FontSize="13"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <TextBlock Style="{StaticResource SubtitleText}" FontSize="11.5" Margin="0,3,0,0"
+                                       Text="Copia menor do arquivo; o original nunca e alterado." />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource Card}" Margin="0,0,14,14" Padding="16,14">
+                        <StackPanel>
                             <TextBlock Text="&#xE8DE;" Style="{StaticResource GlyphText}"
                                        FontSize="17" Foreground="{DynamicResource AccentBrush}" />
                             <TextBlock Text="PDF para Word" Margin="0,8,0,0" FontWeight="SemiBold" FontSize="13"
