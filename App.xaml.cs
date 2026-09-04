@@ -79,6 +79,7 @@ public partial class App : Application
         // Estrategias de conversao: trocar LibreOfficeConverter por um conversor
         // Syncfusion aqui muda o backend de DOCX/XLSX sem tocar no resto do app.
         services.AddSingleton<IImageToPdfService, ImageToPdfService>();
+        services.AddSingleton<IImageThumbnailService, ImageThumbnailService>();
         services.AddSingleton<IFileConverter, TextToPdfConverter>();
         services.AddSingleton<IFileConverter, ImageToPdfConverter>();
         services.AddSingleton<IFileConverter, LibreOfficeConverter>();

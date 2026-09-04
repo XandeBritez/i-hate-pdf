@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using IHatePdf.Models;
@@ -11,29 +12,28 @@ public sealed partial class ConverterViewModel : ViewModelBase
 {
     private readonly IConversionService _conversionService;
     private readonly IImageToPdfService _imageService;
+    private readonly IImageThumbnailService _thumbnailService;
     private readonly IDialogService _dialogService;
     private readonly ISettingsService _settings;
 
     public ConverterViewModel(
         IConversionService conversionService,
         IImageToPdfService imageService,
+        IImageThumbnailService thumbnailService,
         IDialogService dialogService,
         ISettingsService settings)
         : base("Converter para PDF", "")
     {
         _conversionService = conversionService;
         _imageService = imageService;
+        _thumbnailService = thumbnailService;
         _dialogService = dialogService;
         _settings = settings;
 
         OutputFolder = settings.Current.ConverterOutputFolder ?? AppSettings.DefaultOutputFolder;
         CombineImages = settings.Current.CombineImages;
 
-        Items.CollectionChanged += (_, _) =>
-        {
-            ConvertAllCommand.NotifyCanExecuteChanged();
-            OnPropertyChanged(nameof(HasImages));
-        };
+        Items.CollectionChanged += OnItemsChanged;
     }
 
     public ObservableCollection<ConversionItem> Items { get; } = new();
@@ -42,6 +42,19 @@ public sealed partial class ConverterViewModel : ViewModelBase
 
     /// <summary>Quando ligado, todas as imagens da fila viram um unico PDF.</summary>
     [ObservableProperty] private bool _combineImages;
+
+    private void OnItemsChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        // A ordem da fila e a ordem das paginas no PDF unico: renumera a cada
+        // insercao, remocao ou arrasto.
+        for (var i = 0; i < Items.Count; i++)
+            Items[i].DisplayNumber = i + 1;
+
+        ConvertAllCommand.NotifyCanExecuteChanged();
+        OnPropertyChanged(nameof(HasImages));
+        OnPropertyChanged(nameof(ShowGrid));
+        OnPropertyChanged(nameof(ShowList));
+    }
 
     partial void OnOutputFolderChanged(string value)
     {
@@ -53,10 +66,18 @@ public sealed partial class ConverterViewModel : ViewModelBase
     {
         _settings.Current.CombineImages = value;
         _settings.Save();
+
+        OnPropertyChanged(nameof(ShowGrid));
+        OnPropertyChanged(nameof(ShowList));
     }
 
     /// <summary>A opcao de juntar so aparece quando ha imagem na fila.</summary>
     public bool HasImages => Items.Any(i => _imageService.IsImage(i.SourcePath));
+
+    /// <summary>No modo album a ordem importa, entao a fila vira grade arrastavel.</summary>
+    public bool ShowGrid => CombineImages && Items.Count > 0;
+
+    public bool ShowList => !CombineImages && Items.Count > 0;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(RemoveCommand))]
@@ -76,7 +97,7 @@ public sealed partial class ConverterViewModel : ViewModelBase
             await AcceptFilesAsync(paths);
     }
 
-    public override Task AcceptFilesAsync(IReadOnlyList<string> paths)
+    public override async Task AcceptFilesAsync(IReadOnlyList<string> paths)
     {
         var ignored = 0;
 
@@ -98,7 +119,23 @@ public sealed partial class ConverterViewModel : ViewModelBase
             ? $"{Items.Count} arquivo(s) na fila. {ignored} ignorado(s) por extensao nao suportada."
             : $"{Items.Count} arquivo(s) na fila.";
 
-        return Task.CompletedTask;
+        await LoadThumbnailsAsync();
+    }
+
+    /// <summary>Carrega as miniaturas das imagens ainda sem uma.</summary>
+    private async Task LoadThumbnailsAsync()
+    {
+        foreach (var item in Items.Where(i => i.Thumbnail is null && _imageService.IsImage(i.SourcePath)).ToList())
+        {
+            try
+            {
+                item.Thumbnail = await _thumbnailService.RenderAsync(item.SourcePath);
+            }
+            catch (Exception)
+            {
+                // Imagem ilegivel continua na fila; o card so fica sem previa.
+            }
+        }
     }
 
     [RelayCommand(CanExecute = nameof(HasSelection))]

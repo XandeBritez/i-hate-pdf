@@ -50,7 +50,7 @@ Abra um PDF e veja **cada página como miniatura**. Marque as que morrem, arrast
 <td width="33%" valign="top">
 
 ### 🔁 Converter
-`TXT` e **imagens** (JPG, PNG, WEBP, BMP, GIF, TIFF) viram PDF direto — e as imagens podem virar **um arquivo cada ou um PDF único**, na ordem da fila.<br/>
+`TXT` e **imagens** (JPG, PNG, WEBP, BMP, GIF, TIFF) viram PDF direto — e as imagens podem virar **um arquivo cada ou um PDF único**. No modo PDF único a fila vira uma **grade de miniaturas arrastáveis**, com o número da página em cada card — a ordem que você vê é a ordem do documento.<br/>
 `DOCX` e `XLSX` passam pelo **LibreOffice headless**.
 
 </td>

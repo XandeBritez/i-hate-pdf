@@ -1,3 +1,4 @@
+using System.Windows.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace IHatePdf.Models;
@@ -16,4 +17,10 @@ public partial class ConversionItem : ObservableObject
     [ObservableProperty] private ConversionStatus _status = ConversionStatus.Pendente;
     [ObservableProperty] private string? _outputPath;
     [ObservableProperty] private string? _errorMessage;
+
+    /// <summary>Miniatura, quando o arquivo e uma imagem. Congelada (Freeze).</summary>
+    [ObservableProperty] private BitmapSource? _thumbnail;
+
+    /// <summary>Posicao 1..N na fila; e a ordem das paginas quando as imagens viram um PDF unico.</summary>
+    [ObservableProperty] private int _displayNumber;
 }
