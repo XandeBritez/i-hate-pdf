@@ -75,13 +75,24 @@ Recupera o conteúdo de um PDF em um `.docx` editável (via Writer do LibreOffic
 
 ## Instalar
 
-1. Baixe o `.zip` da [última release](https://github.com/XandeBritez/i-hate-pdf/releases/latest).
-2. Extraia onde quiser — é portátil, não tem instalador.
-3. Rode `IHatePdf.exe`.
+Cada release publica **dois arquivos** — escolha um:
 
-O pacote é **self-contained**: não precisa instalar o .NET.
+| Arquivo | Para quem |
+|---|---|
+| **`IHatePdf-Setup-x.y.z.exe`** | Instalação normal: atalhos no Menu Iniciar e na área de trabalho, entrada em *Adicionar ou remover programas*, desinstalador — e **instala o LibreOffice junto**. |
+| `IHatePdf-x.y.z-win-x64.zip` | Portátil: extrai e roda, sem instalar nada. Um único `.exe`. |
 
-> **DOCX, XLSX e PDF → Word (.docx)** precisam do [LibreOffice](https://www.libreoffice.org). O `.txt` não precisa. Você não precisa sair do app para isso: a tela **PDF para Word** tem um botão que descobre a versão estável atual, baixa o instalador oficial com barra de progresso e o abre para você. O app acha o `soffice.exe` sozinho depois (registro, Program Files e PATH). Sem ele, TXT e todas as ferramentas de PDF continuam funcionando normalmente.
+Os dois são **self-contained**: não precisa instalar o .NET.
+
+### O instalador
+
+Instala em `%LocalAppData%\Programs\IHatePdf` — **de propósito**, e não em `Program Files`. Em `Program Files` o app não conseguiria se sobrescrever, e a atualização automática pararia de funcionar. Como consequência, o app instala **sem pedir UAC**.
+
+Durante a instalação ele oferece instalar o **LibreOffice** (necessário para DOCX, XLSX e PDF → Word), baixando a versão estável e rodando em modo silencioso. A tarefa só aparece se o LibreOffice ainda não estiver na máquina. O Windows pede elevação **uma vez** nesse passo — não existe instalação do LibreOffice para todos os usuários sem isso.
+
+Se você desmarcar a opção, ou se o download falhar, a instalação do app continua normalmente: o aviso e o botão **"Baixar e instalar LibreOffice"** continuam na tela **PDF para Word** para quando você quiser — inclusive se um dia desinstalar o LibreOffice sem querer.
+
+> `.txt` **não** precisa de LibreOffice: a extração de texto é nativa. Sem o LibreOffice, tudo funciona menos DOCX/XLSX → PDF e PDF → `.docx`.
 
 ### Atualizar
 

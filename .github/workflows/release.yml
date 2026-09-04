@@ -1,7 +1,10 @@
 name: Release
 
-# Publica um pacote Windows sempre que uma tag v* e enviada.
-# O app le exatamente esta release em Sobre > Verificar atualizacoes.
+# Publica dois pacotes Windows sempre que uma tag v* e enviada:
+#   - IHatePdf-Setup-<versao>.exe  instalador (atalhos, desinstalador, LibreOffice)
+#   - IHatePdf-<versao>-win-x64.zip  executavel portatil
+# O app le esta release em Sobre > Verificar atualizacoes e usa o .zip
+# para se trocar no lugar.
 on:
   push:
     tags:
@@ -47,7 +50,7 @@ jobs:
             -p:FileVersion=${{ steps.version.outputs.version }}.0 `
             -o publish
 
-      - name: Compactar
+      - name: Compactar pacote portatil
         shell: pwsh
         run: |
           # Os .pdb nativos das dependencias (libSkiaSharp) sobrevivem ao
@@ -56,9 +59,61 @@ jobs:
           Get-ChildItem publish | ForEach-Object { "empacotando: $($_.Name)" }
           Compress-Archive -Path publish\* -DestinationPath IHatePdf-${{ steps.version.outputs.version }}-win-x64.zip
 
+      - name: Descobrir a versao estavel do LibreOffice
+        id: libreoffice
+        shell: pwsh
+        run: |
+          # A URL nao fica fixa no .iss: cada release do app carrega o
+          # LibreOffice vigente no momento em que foi publicada.
+          $base = "https://download.documentfoundation.org/libreoffice/stable/"
+          try {
+            $index = Invoke-WebRequest -Uri $base -UseBasicParsing -TimeoutSec 60
+            $version = ([regex]::Matches($index.Content, 'href="(\d+\.\d+\.\d+)/"') |
+              ForEach-Object { [version]$_.Groups[1].Value } |
+              Sort-Object -Descending |
+              Select-Object -First 1).ToString()
+
+            $url = "$base$version/win/x86_64/LibreOffice_${version}_Win_x86-64.msi"
+
+            # So aceita a URL se ela realmente existir neste momento.
+            $head = Invoke-WebRequest -Uri $url -Method Head -UseBasicParsing -TimeoutSec 60
+            if ($head.StatusCode -ne 200) { throw "HTTP $($head.StatusCode)" }
+
+            "versao encontrada: $version"
+            "version=$version" >> $env:GITHUB_OUTPUT
+            "url=$url" >> $env:GITHUB_OUTPUT
+          } catch {
+            # Sem URL, o instalador simplesmente nao oferece a tarefa e o app
+            # continua sabendo baixar o LibreOffice sozinho.
+            "AVISO: nao foi possivel resolver o LibreOffice ($_)"
+            "version=" >> $env:GITHUB_OUTPUT
+            "url=" >> $env:GITHUB_OUTPUT
+          }
+
+      - name: Compilar o instalador (Inno Setup)
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) {
+            choco install innosetup -y --no-progress
+            $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          }
+
+          & $iscc `
+            "/DAppVersion=${{ steps.version.outputs.version }}" `
+            "/DSourceExe=..\publish\IHatePdf.exe" `
+            "/DLibreOfficeUrl=${{ steps.libreoffice.outputs.url }}" `
+            "/DLibreOfficeVersion=${{ steps.libreoffice.outputs.version }}" `
+            installer\IHatePdf.iss
+
+          if ($LASTEXITCODE -ne 0) { throw "ISCC falhou com codigo $LASTEXITCODE" }
+          Get-ChildItem installer\*.exe | ForEach-Object { "instalador: $($_.Name) $([math]::Round($_.Length/1MB,1)) MB" }
+
       - name: Criar release
         uses: softprops/action-gh-release@v2
         with:
           name: I Hate PDF ${{ steps.version.outputs.version }}
           generate_release_notes: true
-          files: IHatePdf-${{ steps.version.outputs.version }}-win-x64.zip
+          files: |
+            installer/IHatePdf-Setup-${{ steps.version.outputs.version }}.exe
+            IHatePdf-${{ steps.version.outputs.version }}-win-x64.zip

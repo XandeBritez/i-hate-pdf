@@ -57,15 +57,30 @@ public sealed class GitHubUpdateService : IUpdateService
         string? downloadUrl = null, downloadName = null;
         if (root.TryGetProperty("assets", out var assets))
         {
-            foreach (var asset in assets.EnumerateArray())
-            {
-                var name = asset.GetProperty("name").GetString() ?? string.Empty;
-                if (!AssetExtensions.Any(ext => name.EndsWith(ext, StringComparison.OrdinalIgnoreCase)))
-                    continue;
+            // A release publica o pacote portatil e o instalador. A atualizacao
+            // automatica troca o executavel no lugar, entao o .zip vem primeiro:
+            // rodar o instalador exigiria interacao e elevacao.
+            var best = assets.EnumerateArray()
+                .Select(a => new
+                {
+                    Name = a.GetProperty("name").GetString() ?? string.Empty,
+                    Url = a.GetProperty("browser_download_url").GetString()
+                })
+                .Select(a => new
+                {
+                    a.Name,
+                    a.Url,
+                    Priority = Array.FindIndex(AssetExtensions,
+                        ext => a.Name.EndsWith(ext, StringComparison.OrdinalIgnoreCase))
+                })
+                .Where(a => a.Priority >= 0)
+                .OrderBy(a => a.Priority)
+                .FirstOrDefault();
 
-                downloadName = name;
-                downloadUrl = asset.GetProperty("browser_download_url").GetString();
-                break;
+            if (best is not null)
+            {
+                downloadName = best.Name;
+                downloadUrl = best.Url;
             }
         }
 

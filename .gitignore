@@ -22,3 +22,6 @@ desktop.ini
 ## Originais da marca (as versoes usadas pelo app estao em Assets/)
 /logo.png
 /logo 2.png
+
+## Saida do instalador
+installer/*.exe
