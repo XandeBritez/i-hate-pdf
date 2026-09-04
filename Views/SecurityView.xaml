@@ -107,6 +107,14 @@
                                  b:PasswordBoxBehavior.BoundPassword="{Binding PasswordConfirmation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                 </Grid>
 
+                <!-- Validacao junto dos campos: no rodape passava despercebida. -->
+                <TextBlock Text="{Binding ValidationMessage}"
+                           Margin="0,8,0,0"
+                           FontSize="12"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource ErrorBrush}"
+                           Visibility="{Binding ValidationMessage, Converter={StaticResource EmptyToVisibility}, ConverterParameter=invert}" />
+
                 <Grid Margin="0,14,0,0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />

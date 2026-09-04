@@ -44,10 +44,17 @@ public sealed partial class SecurityViewModel : ViewModelBase
     [ObservableProperty] private string _password = string.Empty;
     [ObservableProperty] private string _passwordConfirmation = string.Empty;
 
+    /// <summary>Erro de validacao mostrado ao lado dos campos, nao so no rodape.</summary>
+    [ObservableProperty] private string _validationMessage = string.Empty;
+
+    partial void OnPasswordChanged(string value) => ValidationMessage = string.Empty;
+    partial void OnPasswordConfirmationChanged(string value) => ValidationMessage = string.Empty;
+
     partial void OnProtectModeChanged(bool value)
     {
         Password = string.Empty;
         PasswordConfirmation = string.Empty;
+        ValidationMessage = string.Empty;
         OnPropertyChanged(nameof(ActionLabel));
     }
 
@@ -133,9 +140,10 @@ public sealed partial class SecurityViewModel : ViewModelBase
     {
         if (string.IsNullOrEmpty(Password))
         {
-            StatusMessage = ProtectMode
+            ValidationMessage = ProtectMode
                 ? "Digite a senha que devera abrir os arquivos."
                 : "Digite a senha atual dos arquivos.";
+            StatusMessage = ValidationMessage;
             return;
         }
 
@@ -143,9 +151,12 @@ public sealed partial class SecurityViewModel : ViewModelBase
         // a confirmacao existe so nesse sentido.
         if (ProtectMode && Password != PasswordConfirmation)
         {
-            StatusMessage = "As senhas nao conferem.";
+            ValidationMessage = "As senhas nao conferem.";
+            StatusMessage = ValidationMessage;
             return;
         }
+
+        ValidationMessage = string.Empty;
 
         try
         {
