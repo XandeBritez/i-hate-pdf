@@ -1,16 +1,16 @@
-<UserControl x:Class="IHatePdf.Views.PdfToWordView"
+<UserControl x:Class="IHatePdf.Views.SecurityView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:b="clr-namespace:IHatePdf.Behaviors"
              xmlns:models="clr-namespace:IHatePdf.Models"
              xmlns:vm="clr-namespace:IHatePdf.ViewModels"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             d:DataContext="{d:DesignInstance Type=vm:PdfToWordViewModel}"
+             d:DataContext="{d:DesignInstance Type=vm:SecurityViewModel}"
              mc:Ignorable="d">
 
     <Grid Margin="28,24,28,20">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -19,108 +19,93 @@
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0">
-            <TextBlock Text="PDF para outros formatos" Style="{StaticResource TitleText}" />
+            <TextBlock Text="Senha" Style="{StaticResource TitleText}" />
             <TextBlock Style="{StaticResource SubtitleText}" Margin="0,4,0,0"
-                       Text="Transforma o PDF em .docx editavel, .txt ou imagens. O PDF guarda posicoes de glifos, nao paragrafos: o texto sai bem, mas layout complexo (colunas, tabelas) e aproximado, e PDF escaneado nao tem texto para extrair." />
+                       Text="Coloca ou tira a senha de abertura, sempre em uma copia. Remover a senha exige saber a senha: o app nao quebra protecao." />
         </StackPanel>
 
-        <!-- Aviso de dependencia ausente, antes de o usuario tentar e falhar -->
-        <Border Grid.Row="1"
-                Margin="0,16,0,0"
-                Padding="14,11"
-                CornerRadius="10"
-                Background="{DynamicResource AccentSoftBrush}"
-                BorderBrush="{DynamicResource AccentBrush}"
-                BorderThickness="1"
-                Visibility="{Binding IsLibreOfficeMissing, Converter={StaticResource BoolToVisibility}}">
-            <StackPanel>
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="&#xE7BA;" Style="{StaticResource GlyphText}"
-                               FontSize="15" VerticalAlignment="Top" Margin="0,1,0,0"
-                               Foreground="{DynamicResource AccentBrush}" />
-                    <TextBlock Margin="10,0,0,0"
-                               MaxWidth="720"
-                               HorizontalAlignment="Left"
-                               FontSize="12.5"
-                               TextWrapping="Wrap"
-                               Foreground="{DynamicResource TextPrimaryBrush}"
-                               Text="Gerar .docx precisa do LibreOffice. Baixe por aqui mesmo: o app pega o instalador oficial e abre para voce. A opcao Texto puro (.txt) funciona sem ele." />
-                </StackPanel>
-
-                <ProgressBar Height="4"
-                             Margin="25,12,0,0"
-                             Minimum="0" Maximum="100"
-                             Value="{Binding LibreOfficeProgress}"
-                             Foreground="{DynamicResource AccentBrush}"
-                             Background="{DynamicResource BorderBrushSoft}"
-                             BorderThickness="0"
-                             Visibility="{Binding IsDownloadingLibreOffice, Converter={StaticResource BoolToVisibility}}" />
-
-                <TextBlock Text="{Binding LibreOfficeStatus}"
-                           Margin="25,8,0,0"
-                           FontSize="11.5"
-                           TextWrapping="Wrap"
-                           Foreground="{DynamicResource TextSecondaryBrush}"
-                           Visibility="{Binding LibreOfficeStatus, Converter={StaticResource EmptyToVisibility}, ConverterParameter=invert}" />
-
-                <WrapPanel Margin="25,12,0,0">
-                    <Button Content="Baixar e instalar LibreOffice"
-                            Style="{StaticResource PrimaryButton}"
-                            IsEnabled="{Binding IsDownloadingLibreOffice, Converter={StaticResource InverseBool}}"
-                            Command="{Binding InstallLibreOfficeCommand}" />
-                    <Button Content="Ja instalei"
-                            Style="{StaticResource GhostButton}"
-                            Command="{Binding RecheckLibreOfficeCommand}" />
-                </WrapPanel>
-            </StackPanel>
-        </Border>
-
-        <WrapPanel Grid.Row="2" Orientation="Horizontal" Margin="0,18,0,12">
+        <WrapPanel Grid.Row="1" Orientation="Horizontal" Margin="0,18,0,12">
             <Button Content="Adicionar PDFs" Style="{StaticResource GhostButton}" Margin="0,0,26,8" Command="{Binding AddFilesCommand}" />
             <Button Content="Remover" Style="{StaticResource GhostButton}" Command="{Binding RemoveCommand}" />
             <Button Content="Limpar" Style="{StaticResource GhostButton}" Margin="0,0,0,8" Command="{Binding ClearCommand}" />
         </WrapPanel>
 
-        <!-- Formato e pasta de saida -->
-        <Border Grid.Row="3" Style="{StaticResource Card}" Margin="0,0,0,14">
+        <Border Grid.Row="2" Style="{StaticResource Card}" Margin="0,0,0,14" Padding="14,12">
             <StackPanel>
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="Gerar"
+                    <TextBlock Text="Acao"
                                VerticalAlignment="Center"
                                Margin="0,0,14,0"
                                Foreground="{DynamicResource TextSecondaryBrush}"
                                FontSize="12.5" />
 
-                    <RadioButton Content="Word (.docx)"
-                                 GroupName="Formato"
-                                 IsChecked="{Binding FormatWord}"
+                    <RadioButton GroupName="Acao"
+                                 IsChecked="{Binding ProtectMode}"
                                  VerticalAlignment="Center"
                                  Margin="0,0,18,0"
-                                 Foreground="{DynamicResource TextPrimaryBrush}" />
+                                 Foreground="{DynamicResource TextPrimaryBrush}">
+                        <TextBlock>
+                            <Run Text="Proteger" FontWeight="SemiBold" />
+                            <Run Text="- exige senha para abrir" Foreground="{DynamicResource TextSecondaryBrush}" />
+                        </TextBlock>
+                    </RadioButton>
 
-                    <RadioButton Content="Texto puro (.txt)"
-                                 GroupName="Formato"
-                                 IsChecked="{Binding FormatText}"
-                                 ToolTip="Extraido direto do PDF; nao precisa do LibreOffice"
+                    <RadioButton GroupName="Acao"
+                                 IsChecked="{Binding ProtectMode, Converter={StaticResource InverseBool}}"
                                  VerticalAlignment="Center"
-                                 Margin="0,0,18,0"
-                                 Foreground="{DynamicResource TextPrimaryBrush}" />
-
-                    <RadioButton Content="Imagens (PNG)"
-                                 GroupName="Formato"
-                                 IsChecked="{Binding FormatPng}"
-                                 ToolTip="Uma imagem por pagina, em uma pasta com o nome do PDF"
-                                 VerticalAlignment="Center"
-                                 Margin="0,0,18,0"
-                                 Foreground="{DynamicResource TextPrimaryBrush}" />
-
-                    <RadioButton Content="Imagens (JPG)"
-                                 GroupName="Formato"
-                                 IsChecked="{Binding FormatJpeg}"
-                                 ToolTip="Uma imagem por pagina, em uma pasta com o nome do PDF"
-                                 VerticalAlignment="Center"
-                                 Foreground="{DynamicResource TextPrimaryBrush}" />
+                                 Foreground="{DynamicResource TextPrimaryBrush}">
+                        <TextBlock>
+                            <Run Text="Remover senha" FontWeight="SemiBold" />
+                            <Run Text="- gera uma copia aberta" Foreground="{DynamicResource TextSecondaryBrush}" />
+                        </TextBlock>
+                    </RadioButton>
                 </StackPanel>
+
+                <Grid Margin="0,14,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="220" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="220" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0"
+                               VerticalAlignment="Center"
+                               Margin="0,0,12,0"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               FontSize="12.5"
+                               Text="Senha" />
+
+                    <PasswordBox Grid.Column="1"
+                                 VerticalAlignment="Center"
+                                 Padding="8,6"
+                                 Background="{DynamicResource CardBackgroundBrush}"
+                                 Foreground="{DynamicResource TextPrimaryBrush}"
+                                 BorderBrush="{DynamicResource BorderBrushSoft}"
+                                 CaretBrush="{DynamicResource TextPrimaryBrush}"
+                                 b:PasswordBoxBehavior.BoundPassword="{Binding Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <!-- A confirmacao so existe ao proteger: errar a senha ali
+                         deixaria o arquivo inacessivel para sempre. -->
+                    <TextBlock Grid.Column="2"
+                               VerticalAlignment="Center"
+                               Margin="18,0,12,0"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               FontSize="12.5"
+                               Text="Confirmar"
+                               Visibility="{Binding ProtectMode, Converter={StaticResource BoolToVisibility}}" />
+
+                    <PasswordBox Grid.Column="3"
+                                 VerticalAlignment="Center"
+                                 Padding="8,6"
+                                 Background="{DynamicResource CardBackgroundBrush}"
+                                 Foreground="{DynamicResource TextPrimaryBrush}"
+                                 BorderBrush="{DynamicResource BorderBrushSoft}"
+                                 CaretBrush="{DynamicResource TextPrimaryBrush}"
+                                 Visibility="{Binding ProtectMode, Converter={StaticResource BoolToVisibility}}"
+                                 b:PasswordBoxBehavior.BoundPassword="{Binding PasswordConfirmation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                </Grid>
 
                 <Grid Margin="0,14,0,0">
                     <Grid.ColumnDefinitions>
@@ -152,14 +137,14 @@
             </StackPanel>
         </Border>
 
-        <Border Grid.Row="4" Style="{StaticResource DropZoneBorder}">
+        <Border Grid.Row="3" Style="{StaticResource DropZoneBorder}">
             <Grid>
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
                             Visibility="{Binding Items.Count, Converter={StaticResource EmptyToVisibility}}">
-                    <TextBlock Text="&#xE8E5;" Style="{StaticResource GlyphText}"
+                    <TextBlock Text="&#xE72E;" Style="{StaticResource GlyphText}"
                                FontSize="42" HorizontalAlignment="Center"
                                Foreground="{DynamicResource TextSecondaryBrush}" />
-                    <TextBlock Text="Solte os PDFs que viram Word aqui"
+                    <TextBlock Text="Solte os PDFs aqui"
                                FontSize="15" Margin="0,12,0,0" HorizontalAlignment="Center"
                                Foreground="{DynamicResource TextPrimaryBrush}" />
                 </StackPanel>
@@ -180,9 +165,9 @@
                                 <Border Grid.Column="0" Width="40" Height="34" CornerRadius="8"
                                         Background="{DynamicResource AccentSoftBrush}"
                                         VerticalAlignment="Center">
-                                    <TextBlock Text="PDF"
-                                               FontSize="10.5"
-                                               FontWeight="SemiBold"
+                                    <TextBlock Text="&#xE72E;"
+                                               FontFamily="Segoe MDL2 Assets"
+                                               FontSize="14"
                                                Foreground="{DynamicResource AccentBrush}"
                                                HorizontalAlignment="Center"
                                                VerticalAlignment="Center" />
@@ -222,16 +207,16 @@
             </Grid>
         </Border>
 
-        <Grid Grid.Row="5" Margin="0,16,0,0">
+        <Grid Grid.Row="4" Margin="0,16,0,0">
             <TextBlock Text="{Binding StatusMessage}"
                        VerticalAlignment="Center"
                        TextTrimming="CharacterEllipsis"
                        Style="{StaticResource SubtitleText}" />
-            <Button Content="Converter tudo"
+            <Button Content="{Binding ActionLabel}"
                     HorizontalAlignment="Right"
                     Style="{StaticResource PrimaryButton}"
                     IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}"
-                    Command="{Binding ConvertAllCommand}" />
+                    Command="{Binding ApplyCommand}" />
         </Grid>
     </Grid>
 </UserControl>

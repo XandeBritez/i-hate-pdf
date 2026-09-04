@@ -44,18 +44,26 @@ Arraste vários PDFs. Cada um vira um **card com a capa visível** e um número 
 <td width="33%" valign="top">
 
 ### ✂️ Editar páginas
-Abra um PDF e veja **cada página como miniatura**. Marque as que morrem, arraste as que ficam, puxe páginas de outro arquivo. Cada card mostra a **posição nova** e a **original** (`era 3`), então dá para conferir a reorganização antes de salvar. Salva como um PDF novo — o original não é tocado.
+Abra um PDF e veja **cada página como miniatura**. Marque as que morrem, arraste as que ficam, **gire** as tortas, puxe páginas de outro arquivo. Cada card mostra a **posição nova** e a **original** (`era 3`). **Salvar seleção** grava só as páginas marcadas num arquivo à parte — é assim que se divide um PDF aqui. O original nunca é tocado.
 
 </td>
 <td width="33%" valign="top">
 
 ### 🔁 Converter
-`TXT` vira PDF direto, com paginação e quebra de linha de verdade.<br/>
-`DOCX` e `XLSX` passam pelo **LibreOffice headless**, em fila, com o erro de cada arquivo na mão.
+`TXT` e **imagens** (JPG, PNG, WEBP, BMP, GIF, TIFF) viram PDF direto — e as imagens podem virar **um arquivo cada ou um PDF único**, na ordem da fila.<br/>
+`DOCX` e `XLSX` passam pelo **LibreOffice headless**.
 
 </td>
 </tr>
 </table>
+
+### 🔐 Senha
+
+Coloca senha de abertura (AES-256) ou tira, sempre gerando uma cópia. **Remover exige saber a senha** — o app não quebra proteção, ele regrava sem criptografia para quem já tem acesso.
+
+<div align="center">
+<img src="docs/screenshots/senha.png" alt="Tela de senha" width="820" />
+</div>
 
 ### 🗜️ Comprimir
 
@@ -81,7 +89,7 @@ Medido num PDF de 8 páginas cheias de imagem:
 
 ### 📤 E o caminho de volta: PDF → Word
 
-Recupera o conteúdo de um PDF em um `.docx` editável (via Writer do LibreOffice) ou em `.txt` puro (extração nativa com PdfPig, **sem depender de nada instalado**).
+Recupera o conteúdo de um PDF em `.docx` editável (via Writer do LibreOffice), `.txt` puro (extração nativa com PdfPig) ou **imagens PNG/JPG**, uma por página, numa pasta com o nome do documento. Só o `.docx` depende do LibreOffice.
 
 > **Honestidade sobre o formato:** o PDF descreve *posições de glifos*, não parágrafos. O texto sai bem; layout complexo — colunas, tabelas, caixas — é reconstruído por aproximação. E um PDF **escaneado não tem texto algum**: viraria um documento vazio, porque este app não faz OCR.
 
@@ -92,6 +100,14 @@ Recupera o conteúdo de um PDF em um `.docx` editável (via Writer do LibreOffic
 <div align="center">
 <img src="docs/screenshots/editar.png" alt="Editor visual de páginas" width="820" />
 </div>
+
+---
+
+## Fora do app
+
+**No menu do botão direito.** A tela **Sobre** liga as entradas do Explorer: *Editar páginas*, *Comprimir* e *Unir* em arquivos PDF, *Converter para PDF* em imagens. O registro é feito em `HKEY_CURRENT_USER` — **sem UAC** — e o mesmo botão desfaz tudo.
+
+**Ele lembra o que você escolheu.** Tema, pastas de saída de cada tela, modo de compressão, formato de exportação: tudo volta como estava, em `%AppData%\IHatePdf\settings.json`. Fica fora da pasta do app de propósito — a atualização automática troca o executável, e configuração ao lado dele se perderia.
 
 ---
 
@@ -153,12 +169,14 @@ MVVM estrito com `CommunityToolkit.Mvvm` — nenhuma View tem lógica no code-be
 ```
 Models/         PageReference, PdfFileItem, PageItem, ConversionItem
 Services/       PdfService · ConversionService (+converters) · PdfCompressionService
-                PdfExportService
+                PdfExportService · ImageToPdfService · PdfSecurityService
+                SettingsService · ShellIntegrationService
                 LibreOfficeRunner · PdfRenderService · WindowsFontResolver
                 GitHubUpdateService · DialogService
-ViewModels/     Main · Merge · Editor · Compress · Converter · PdfToWord · About
+ViewModels/     Main · Merge · Editor · Compress · Converter · PdfToWord
+                Security · About
 Views/          MergeView · EditorView · CompressView · ConverterView
-                PdfToWordView · AboutView
+                PdfToWordView · SecurityView · AboutView
 Behaviors/      FileDropBehavior (drop do Explorer → ICommand) · conversores
 Themes/         Light · Dark · Styles
 ```
@@ -171,6 +189,7 @@ Themes/         Light · Dark · Styles
 | Arrastar cards | [gong-wpf-dragdrop](https://www.nuget.org/packages/gong-wpf-dragdrop) | reordenação dentro das listas |
 | DOCX / XLSX | LibreOffice `--headless` | Office → PDF e PDF → Word (`writer_pdf_import`) |
 | Extração de texto | [PdfPig](https://www.nuget.org/packages/PdfPig) | PDF → TXT e detecção de texto, sem dependência externa |
+| Senha | PDFsharp (`PdfDefaultEncryption.V5`) | AES-256, sem dependência externa |
 | Recompressão | [SkiaSharp](https://www.nuget.org/packages/SkiaSharp) | reencoda as páginas rasterizadas em JPEG |
 
 **A ideia central:** toda operação de página é a mesma primitiva.
@@ -194,7 +213,7 @@ Detalhes que custam caro quando ficam de fora:
 ## Limites conhecidos
 
 - Operações de página copiam o conteúdo: **anotações, campos de formulário e sumário (outlines) não são preservados**.
-- PDFs protegidos por senha não abrem — não há UI de senha.
+- PDFs protegidos só são lidos pelas outras telas depois de passarem pela tela **Senha**.
 - **PDF → Word não faz OCR**: PDF escaneado (imagem pura) não tem texto para extrair.
 - Windows apenas. WPF não é multiplataforma.
 

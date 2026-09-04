@@ -9,6 +9,7 @@ public sealed partial class AboutViewModel : ViewModelBase
 {
     private readonly IUpdateService _updateService;
     private readonly IApplicationService _applicationService;
+    private readonly IShellIntegrationService _shellService;
     private readonly IDialogService _dialogService;
 
     private UpdateInfo? _lastCheck;
@@ -16,12 +17,41 @@ public sealed partial class AboutViewModel : ViewModelBase
     public AboutViewModel(
         IUpdateService updateService,
         IApplicationService applicationService,
+        IShellIntegrationService shellService,
         IDialogService dialogService)
         : base("Sobre", "")
     {
         _updateService = updateService;
         _applicationService = applicationService;
+        _shellService = shellService;
+        _shellIntegrationEnabled = shellService.IsRegistered;
         _dialogService = dialogService;
+    }
+
+    /// <summary>Entradas do app no menu de contexto do Explorer.</summary>
+    [ObservableProperty] private bool _shellIntegrationEnabled;
+
+    [ObservableProperty] private string _shellIntegrationStatus = string.Empty;
+
+    partial void OnShellIntegrationEnabledChanged(bool value)
+    {
+        try
+        {
+            if (value)
+            {
+                _shellService.Register();
+                ShellIntegrationStatus = "Clique com o botao direito em um PDF ou imagem para ver as opcoes.";
+            }
+            else
+            {
+                _shellService.Unregister();
+                ShellIntegrationStatus = "Entradas removidas do menu de contexto.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ShellIntegrationStatus = $"Nao foi possivel alterar: {ex.Message}";
+        }
     }
 
     public string Version => _updateService.CurrentVersion;

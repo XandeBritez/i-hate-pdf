@@ -23,6 +23,7 @@ public enum AppTheme { Light, Dark }
 public sealed partial class MainViewModel : ObservableObject
 {
     private readonly IMessenger _messenger;
+    private readonly ISettingsService _settings;
 
     public MainViewModel(
         MergeViewModel merge,
@@ -30,18 +31,23 @@ public sealed partial class MainViewModel : ObservableObject
         ConverterViewModel converter,
         CompressViewModel compress,
         PdfToWordViewModel pdfToWord,
+        SecurityViewModel security,
         AboutViewModel about,
-        IMessenger messenger)
+        IMessenger messenger,
+        ISettingsService settings)
     {
         _messenger = messenger;
+        _settings = settings;
+        _theme = Enum.TryParse<AppTheme>(settings.Current.Theme, out var saved) ? saved : AppTheme.Light;
         Merge = merge;
         Editor = editor;
         Converter = converter;
         Compress = compress;
         PdfToWord = pdfToWord;
+        Security = security;
         About = about;
 
-        Pages = new ObservableCollection<ViewModelBase> { merge, editor, compress, converter, pdfToWord, about };
+        Pages = new ObservableCollection<ViewModelBase> { merge, editor, compress, converter, pdfToWord, security, about };
         _currentPage = merge;
     }
 
@@ -50,6 +56,7 @@ public sealed partial class MainViewModel : ObservableObject
     public ConverterViewModel Converter { get; }
     public CompressViewModel Compress { get; }
     public PdfToWordViewModel PdfToWord { get; }
+    public SecurityViewModel Security { get; }
     public AboutViewModel About { get; }
 
     public ObservableCollection<ViewModelBase> Pages { get; }
@@ -62,6 +69,9 @@ public sealed partial class MainViewModel : ObservableObject
 
     partial void OnThemeChanged(AppTheme value)
     {
+        _settings.Current.Theme = value.ToString();
+        _settings.Save();
+
         _messenger.Send(new ThemeChangedMessage(value));
         OnPropertyChanged(nameof(IsDarkTheme));
     }
@@ -98,12 +108,43 @@ public sealed partial class MainViewModel : ObservableObject
         {
             // Comprimir e PDF -> Word so aceitam PDF; o resto vai para o conversor.
             CompressViewModel when !allPdf => Converter,
+            SecurityViewModel when !allPdf => Converter,
             PdfToWordViewModel when !allPdf => Converter,
             AboutViewModel => allPdf ? Merge : (ViewModelBase)Converter,
             EditorViewModel when allPdf => Editor,
             ConverterViewModel when allPdf => (ViewModelBase)Merge,
             MergeViewModel when !allPdf => Converter,
             _ => CurrentPage
+        };
+
+        CurrentPage = target;
+        await target.AcceptFilesAsync(files);
+    }
+
+    /// <summary>
+    /// Abre o arquivo vindo do menu de contexto do Explorer na tela que o
+    /// verbo pediu. Sem argumento reconhecido, o app abre normalmente.
+    /// </summary>
+    public async Task HandleCommandLineAsync(IReadOnlyList<string> args)
+    {
+        if (args.Count == 0) return;
+
+        var verb = args[0].StartsWith("--", StringComparison.Ordinal) ? args[0] : null;
+        var files = args.Where(a => !a.StartsWith("--", StringComparison.Ordinal) && File.Exists(a)).ToList();
+
+        if (files.Count == 0) return;
+
+        ViewModelBase target = verb switch
+        {
+            "--edit" => Editor,
+            "--compress" => Compress,
+            "--merge" => Merge,
+            "--convert" => Converter,
+            "--security" => Security,
+            // Sem verbo, o proprio tipo do arquivo decide.
+            _ => files.All(f => string.Equals(Path.GetExtension(f), ".pdf", StringComparison.OrdinalIgnoreCase))
+                ? Editor
+                : Converter
         };
 
         CurrentPage = target;

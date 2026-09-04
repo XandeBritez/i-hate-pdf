@@ -10,23 +10,53 @@ namespace IHatePdf.ViewModels;
 public sealed partial class ConverterViewModel : ViewModelBase
 {
     private readonly IConversionService _conversionService;
+    private readonly IImageToPdfService _imageService;
     private readonly IDialogService _dialogService;
+    private readonly ISettingsService _settings;
 
-    public ConverterViewModel(IConversionService conversionService, IDialogService dialogService)
+    public ConverterViewModel(
+        IConversionService conversionService,
+        IImageToPdfService imageService,
+        IDialogService dialogService,
+        ISettingsService settings)
         : base("Converter para PDF", "")
     {
         _conversionService = conversionService;
+        _imageService = imageService;
         _dialogService = dialogService;
+        _settings = settings;
 
-        OutputFolder = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "IHatePdf");
+        OutputFolder = settings.Current.ConverterOutputFolder ?? AppSettings.DefaultOutputFolder;
+        CombineImages = settings.Current.CombineImages;
 
-        Items.CollectionChanged += (_, _) => ConvertAllCommand.NotifyCanExecuteChanged();
+        Items.CollectionChanged += (_, _) =>
+        {
+            ConvertAllCommand.NotifyCanExecuteChanged();
+            OnPropertyChanged(nameof(HasImages));
+        };
     }
 
     public ObservableCollection<ConversionItem> Items { get; } = new();
 
     [ObservableProperty] private string _outputFolder = string.Empty;
+
+    /// <summary>Quando ligado, todas as imagens da fila viram um unico PDF.</summary>
+    [ObservableProperty] private bool _combineImages;
+
+    partial void OnOutputFolderChanged(string value)
+    {
+        _settings.Current.ConverterOutputFolder = value;
+        _settings.Save();
+    }
+
+    partial void OnCombineImagesChanged(bool value)
+    {
+        _settings.Current.CombineImages = value;
+        _settings.Save();
+    }
+
+    /// <summary>A opcao de juntar so aparece quando ha imagem na fila.</summary>
+    public bool HasImages => Items.Any(i => _imageService.IsImage(i.SourcePath));
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(RemoveCommand))]
@@ -118,7 +148,49 @@ public sealed partial class ConverterViewModel : ViewModelBase
             var ok = 0;
             var failed = 0;
 
-            foreach (var item in Items.Where(i => i.Status != ConversionStatus.Concluido))
+            var pending = Items.Where(i => i.Status != ConversionStatus.Concluido).ToList();
+
+            // Modo album: as imagens saem em um PDF unico, na ordem da fila.
+            if (CombineImages)
+            {
+                var images = pending.Where(i => _imageService.IsImage(i.SourcePath)).ToList();
+                if (images.Count > 0)
+                {
+                    var album = Path.Combine(OutputFolder, "imagens.pdf");
+
+                    foreach (var image in images)
+                        image.Status = ConversionStatus.Convertendo;
+
+                    StatusMessage = $"Juntando {images.Count} imagem(ns) em um PDF...";
+
+                    try
+                    {
+                        await _imageService.CombineAsync(images.Select(i => i.SourcePath), album);
+
+                        foreach (var image in images)
+                        {
+                            image.OutputPath = album;
+                            image.Status = ConversionStatus.Concluido;
+                        }
+
+                        ok += images.Count;
+                    }
+                    catch (Exception ex)
+                    {
+                        foreach (var image in images)
+                        {
+                            image.Status = ConversionStatus.Erro;
+                            image.ErrorMessage = ex.Message;
+                        }
+
+                        failed += images.Count;
+                    }
+
+                    pending = pending.Except(images).ToList();
+                }
+            }
+
+            foreach (var item in pending)
             {
                 item.Status = ConversionStatus.Convertendo;
                 item.ErrorMessage = null;

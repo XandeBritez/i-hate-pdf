@@ -14,6 +14,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <!-- ===== Assinatura ===== -->
@@ -109,8 +110,33 @@
                 </StackPanel>
             </Border>
 
+            <!-- ===== Integracao com o Windows ===== -->
+            <Border Grid.Row="2" Style="{StaticResource Card}" Padding="20,18" Margin="0,14,0,0">
+                <StackPanel>
+                    <TextBlock Text="Integracao com o Windows"
+                               FontSize="15"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimaryBrush}" />
+                    <TextBlock Style="{StaticResource SubtitleText}"
+                               Margin="0,4,0,0"
+                               Text="Adiciona 'Editar paginas', 'Comprimir' e 'Unir' ao menu do botao direito em arquivos PDF, e 'Converter para PDF' em imagens." />
+
+                    <CheckBox IsChecked="{Binding ShellIntegrationEnabled}"
+                              Margin="0,12,0,0"
+                              Foreground="{DynamicResource TextPrimaryBrush}"
+                              Content="Mostrar o i HATE PDF no menu de contexto" />
+
+                    <TextBlock Text="{Binding ShellIntegrationStatus}"
+                               Margin="0,8,0,0"
+                               FontSize="11.5"
+                               TextWrapping="Wrap"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               Visibility="{Binding ShellIntegrationStatus, Converter={StaticResource EmptyToVisibility}, ConverterParameter=invert}" />
+                </StackPanel>
+            </Border>
+
             <!-- ===== O que tem dentro ===== -->
-            <StackPanel Grid.Row="2" Margin="0,30,0,0">
+            <StackPanel Grid.Row="3" Margin="0,30,0,0">
                 <TextBlock Text="O que tem dentro"
                            FontSize="15"
                            FontWeight="SemiBold"
@@ -175,7 +201,7 @@
             </StackPanel>
 
             <!-- ===== Creditos ===== -->
-            <StackPanel Grid.Row="3" Margin="0,30,0,8">
+            <StackPanel Grid.Row="4" Margin="0,30,0,8">
                 <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
                     <Button Content="Repositorio no GitHub"
                             Style="{StaticResource GhostButton}"

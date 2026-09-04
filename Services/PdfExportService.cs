@@ -1,4 +1,6 @@
 using System.Text;
+using PDFtoImage;
+using SkiaSharp;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.DocumentLayoutAnalysis.TextExtractor;
 
@@ -26,15 +28,20 @@ public sealed class PdfExportService : IPdfExportService
 
     public bool IsFormatAvailable(PdfExportFormat format) => format switch
     {
+        // So o .docx depende do LibreOffice; texto e imagens sao nativos.
         PdfExportFormat.Word => IsLibreOfficeAvailable,
-        PdfExportFormat.PlainText => true,
-        _ => false
+        _ => true
     };
+
+    public bool ProducesFolder(PdfExportFormat format) =>
+        format is PdfExportFormat.PngImages or PdfExportFormat.JpegImages;
 
     public string GetExtension(PdfExportFormat format) => format switch
     {
         PdfExportFormat.Word => ".docx",
         PdfExportFormat.PlainText => ".txt",
+        // A saida de imagens e uma pasta: sem extensao no caminho.
+        PdfExportFormat.PngImages or PdfExportFormat.JpegImages => string.Empty,
         _ => throw new ArgumentOutOfRangeException(nameof(format))
     };
 
@@ -46,11 +53,18 @@ public sealed class PdfExportService : IPdfExportService
         if (!string.Equals(Path.GetExtension(pdfPath), ".pdf", StringComparison.OrdinalIgnoreCase))
             throw new ConversionException("Esta ferramenta converte apenas arquivos PDF.");
 
-        Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);
+        if (!ProducesFolder(format))
+            Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);
 
         if (format == PdfExportFormat.PlainText)
         {
             await ExtractTextAsync(pdfPath, outputPath, ct).ConfigureAwait(false);
+            return outputPath;
+        }
+
+        if (ProducesFolder(format))
+        {
+            await ExportImagesAsync(pdfPath, outputPath, format, ct).ConfigureAwait(false);
             return outputPath;
         }
 
@@ -60,6 +74,32 @@ public sealed class PdfExportService : IPdfExportService
 
         return outputPath;
     }
+
+    /// <summary>Renderiza cada pagina como imagem dentro de uma pasta.</summary>
+    private static Task ExportImagesAsync(string pdfPath, string outputFolder, PdfExportFormat format, CancellationToken ct) =>
+        Task.Run(() =>
+        {
+            Directory.CreateDirectory(outputFolder);
+
+            var bytes = File.ReadAllBytes(pdfPath);
+            var pageCount = Conversion.GetPageCount(bytes);
+            var png = format == PdfExportFormat.PngImages;
+
+            for (var i = 0; i < pageCount; i++)
+            {
+                ct.ThrowIfCancellationRequested();
+
+                using var bitmap = Conversion.ToImage(bytes, i, password: null, options: new RenderOptions(Dpi: 150));
+                using var encoded = bitmap.Encode(
+                    png ? SKEncodedImageFormat.Png : SKEncodedImageFormat.Jpeg,
+                    png ? 100 : 88);
+
+                // Numero com zeros a esquerda para o Explorer ordenar certo.
+                var name = $"pagina-{i + 1:D3}.{(png ? "png" : "jpg")}";
+                using var file = File.Create(Path.Combine(outputFolder, name));
+                encoded.SaveTo(file);
+            }
+        }, ct);
 
     /// <summary>Extrai o texto pagina a pagina, na ordem de leitura do conteudo.</summary>
     private static Task ExtractTextAsync(string pdfPath, string outputPath, CancellationToken ct) =>

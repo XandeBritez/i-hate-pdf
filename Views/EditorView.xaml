@@ -33,7 +33,18 @@
 
             <Button Content="Selecionar tudo" Style="{StaticResource GhostButton}" Command="{Binding SelectAllCommand}" />
             <Button Content="Limpar selecao" Style="{StaticResource GhostButton}" Command="{Binding ClearSelectionCommand}" />
-            <Button Content="Excluir selecionadas" Style="{StaticResource GhostButton}" Command="{Binding DeleteSelectedCommand}" Margin="0,0,26,8" />
+            <Button Content="Excluir selecionadas" Style="{StaticResource GhostButton}" Command="{Binding DeleteSelectedCommand}" />
+            <Button Style="{StaticResource GhostButton}" Command="{Binding RotateSelectedCommand}" CommandParameter="-90"
+                    ToolTip="Girar a esquerda (sem selecao, gira tudo)">
+                <TextBlock Text="&#xE777;" FontFamily="Segoe MDL2 Assets" FontSize="14" />
+            </Button>
+            <Button Style="{StaticResource GhostButton}" Command="{Binding RotateSelectedCommand}" CommandParameter="90"
+                    ToolTip="Girar a direita (sem selecao, gira tudo)" Margin="0,0,26,8">
+                <TextBlock Text="&#xE72C;" FontFamily="Segoe MDL2 Assets" FontSize="14" />
+            </Button>
+
+            <Button Content="Salvar selecao" Style="{StaticResource GhostButton}" Command="{Binding SaveSelectionCommand}"
+                    ToolTip="Grava so as paginas marcadas em um arquivo novo" Margin="0,0,26,8" />
 
             <Button Content="Fechar" Style="{StaticResource GhostButton}" Command="{Binding CloseCommand}" Margin="0,0,0,8" />
         </WrapPanel>
@@ -111,7 +122,13 @@
                                             </Border.Effect>
                                             <Image Source="{Binding Thumbnail}"
                                                    Stretch="Uniform"
-                                                   RenderOptions.BitmapScalingMode="HighQuality" />
+                                                   RenderOptions.BitmapScalingMode="HighQuality">
+                                                <!-- LayoutTransform (e nao RenderTransform) para o card
+                                                     reservar o espaco da pagina ja girada. -->
+                                                <Image.LayoutTransform>
+                                                    <RotateTransform Angle="{Binding Rotation}" />
+                                                </Image.LayoutTransform>
+                                            </Image>
                                         </Border>
                                         <!-- Placeholder por cima do fundo branco enquanto a miniatura nao chega -->
                                         <TextBlock Text="Renderizando..."

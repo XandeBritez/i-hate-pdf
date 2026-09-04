@@ -34,9 +34,27 @@ public partial class App : Application
         var messenger = _services.GetRequiredService<IMessenger>();
         messenger.Register<ThemeChangedMessage>(this, (_, message) => ApplyTheme(message.Value));
 
-        var window = new MainWindow { DataContext = _services.GetRequiredService<MainViewModel>() };
+        var main = _services.GetRequiredService<MainViewModel>();
+
+        // O tema salvo precisa ser aplicado antes da janela aparecer, senao
+        // ela pisca no claro antes de trocar.
+        ApplyTheme(main.Theme);
+
+        var window = new MainWindow { DataContext = main };
         MainWindow = window;
         window.Show();
+
+        // Arquivo vindo do menu de contexto do Explorer.
+        if (e.Args.Length > 0)
+            _ = main.HandleCommandLineAsync(e.Args);
+    }
+
+    protected override void OnExit(ExitEventArgs e)
+    {
+        // Dispor o container grava as preferencias pendentes (o SettingsService
+        // trabalha com gravacao adiada).
+        (_services as IDisposable)?.Dispose();
+        base.OnExit(e);
     }
 
     private static ServiceProvider ConfigureServices()
@@ -44,6 +62,7 @@ public partial class App : Application
         var services = new ServiceCollection();
 
         services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
+        services.AddSingleton<ISettingsService, SettingsService>();
 
         // Servicos
         services.AddSingleton<IPdfService, PdfService>();
@@ -53,11 +72,15 @@ public partial class App : Application
         services.AddSingleton<IApplicationService, ApplicationService>();
         services.AddSingleton<IPdfExportService, PdfExportService>();
         services.AddSingleton<IPdfCompressionService, PdfCompressionService>();
+        services.AddSingleton<IPdfSecurityService, PdfSecurityService>();
+        services.AddSingleton<IShellIntegrationService, ShellIntegrationService>();
         services.AddSingleton<ILibreOfficeInstallerService, LibreOfficeInstallerService>();
 
         // Estrategias de conversao: trocar LibreOfficeConverter por um conversor
         // Syncfusion aqui muda o backend de DOCX/XLSX sem tocar no resto do app.
+        services.AddSingleton<IImageToPdfService, ImageToPdfService>();
         services.AddSingleton<IFileConverter, TextToPdfConverter>();
+        services.AddSingleton<IFileConverter, ImageToPdfConverter>();
         services.AddSingleton<IFileConverter, LibreOfficeConverter>();
         services.AddSingleton<IConversionService, ConversionService>();
 
@@ -67,6 +90,7 @@ public partial class App : Application
         services.AddSingleton<ConverterViewModel>();
         services.AddSingleton<CompressViewModel>();
         services.AddSingleton<PdfToWordViewModel>();
+        services.AddSingleton<SecurityViewModel>();
         services.AddSingleton<AboutViewModel>();
         services.AddSingleton<MainViewModel>();
 

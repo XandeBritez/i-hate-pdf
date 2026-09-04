@@ -20,7 +20,7 @@
         <StackPanel Grid.Row="0">
             <TextBlock Text="Converter para PDF" Style="{StaticResource TitleText}" />
             <TextBlock Style="{StaticResource SubtitleText}" Margin="0,4,0,0"
-                       Text="TXT e renderizado direto pelo PDFsharp. DOCX e XLSX usam o LibreOffice em modo headless." />
+                       Text="TXT e imagens (JPG, PNG, WEBP...) sao convertidos direto pelo app. DOCX e XLSX usam o LibreOffice em modo headless." />
         </StackPanel>
 
         <WrapPanel Grid.Row="1" Orientation="Horizontal" Margin="0,18,0,12">
@@ -31,7 +31,19 @@
 
         <!-- Pasta de saida -->
         <Border Grid.Row="2" Style="{StaticResource Card}" Margin="0,0,0,14">
-            <Grid>
+            <StackPanel>
+                <CheckBox IsChecked="{Binding CombineImages}"
+                          Margin="0,0,0,12"
+                          Foreground="{DynamicResource TextPrimaryBrush}"
+                          Visibility="{Binding HasImages, Converter={StaticResource BoolToVisibility}}"
+                          ToolTip="Uma pagina por imagem, na ordem da fila">
+                    <TextBlock>
+                        <Run Text="Juntar as imagens em um unico PDF" />
+                        <Run Text="- desligado, cada imagem vira um arquivo" Foreground="{DynamicResource TextSecondaryBrush}" />
+                    </TextBlock>
+                </CheckBox>
+
+                <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
@@ -58,7 +70,8 @@
                         Margin="8,0,0,0"
                         Style="{StaticResource GhostButton}"
                         Command="{Binding OpenOutputFolderCommand}" />
-            </Grid>
+                </Grid>
+            </StackPanel>
         </Border>
 
         <Border Grid.Row="3" Style="{StaticResource DropZoneBorder}">
@@ -68,7 +81,7 @@
                     <TextBlock Text="&#xE8E5;" Style="{StaticResource GlyphText}"
                                FontSize="42" HorizontalAlignment="Center"
                                Foreground="{DynamicResource TextSecondaryBrush}" />
-                    <TextBlock Text="Solte arquivos TXT, DOCX ou XLSX aqui"
+                    <TextBlock Text="Solte arquivos TXT, DOCX, XLSX ou imagens aqui"
                                FontSize="15" Margin="0,12,0,0" HorizontalAlignment="Center"
                                Foreground="{DynamicResource TextPrimaryBrush}" />
                 </StackPanel>

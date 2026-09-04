@@ -14,19 +14,24 @@ public sealed partial class PdfToWordViewModel : ViewModelBase
     private readonly IPdfExportService _exportService;
     private readonly ILibreOfficeInstallerService _installerService;
     private readonly IDialogService _dialogService;
+    private readonly ISettingsService _settings;
 
     public PdfToWordViewModel(
         IPdfExportService exportService,
         ILibreOfficeInstallerService installerService,
-        IDialogService dialogService)
+        IDialogService dialogService,
+        ISettingsService settings)
         : base("PDF para Word", "")
     {
         _exportService = exportService;
         _installerService = installerService;
         _dialogService = dialogService;
+        _settings = settings;
 
-        OutputFolder = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "IHatePdf");
+        OutputFolder = settings.Current.ExportOutputFolder ?? AppSettings.DefaultOutputFolder;
+        Format = Enum.TryParse<PdfExportFormat>(settings.Current.ExportFormat, out var saved)
+            ? saved
+            : PdfExportFormat.Word;
 
         Items.CollectionChanged += (_, _) => ConvertAllCommand.NotifyCanExecuteChanged();
     }
@@ -39,10 +44,50 @@ public sealed partial class PdfToWordViewModel : ViewModelBase
     [NotifyCanExecuteChangedFor(nameof(RemoveCommand))]
     private ConversionItem? _selectedItem;
 
-    /// <summary>Word por padrao; texto puro para quem so quer o conteudo.</summary>
-    [ObservableProperty] private bool _exportAsWord = true;
+    /// <summary>Formato de saida escolhido na tela.</summary>
+    [ObservableProperty] private PdfExportFormat _format = PdfExportFormat.Word;
 
-    partial void OnExportAsWordChanged(bool value) => OnPropertyChanged(nameof(IsLibreOfficeMissing));
+    partial void OnOutputFolderChanged(string value)
+    {
+        _settings.Current.ExportOutputFolder = value;
+        _settings.Save();
+    }
+
+    partial void OnFormatChanged(PdfExportFormat value)
+    {
+        _settings.Current.ExportFormat = value.ToString();
+        _settings.Save();
+
+        OnPropertyChanged(nameof(IsLibreOfficeMissing));
+        OnPropertyChanged(nameof(FormatWord));
+        OnPropertyChanged(nameof(FormatText));
+        OnPropertyChanged(nameof(FormatPng));
+        OnPropertyChanged(nameof(FormatJpeg));
+    }
+
+    public bool FormatWord
+    {
+        get => Format == PdfExportFormat.Word;
+        set { if (value) Format = PdfExportFormat.Word; }
+    }
+
+    public bool FormatText
+    {
+        get => Format == PdfExportFormat.PlainText;
+        set { if (value) Format = PdfExportFormat.PlainText; }
+    }
+
+    public bool FormatPng
+    {
+        get => Format == PdfExportFormat.PngImages;
+        set { if (value) Format = PdfExportFormat.PngImages; }
+    }
+
+    public bool FormatJpeg
+    {
+        get => Format == PdfExportFormat.JpegImages;
+        set { if (value) Format = PdfExportFormat.JpegImages; }
+    }
 
     /// <summary>
     /// O aviso do LibreOffice so aparece no formato que depende dele: o .txt e
@@ -104,8 +149,6 @@ public sealed partial class PdfToWordViewModel : ViewModelBase
             ? "LibreOffice encontrado. A conversao esta liberada."
             : "Ainda nao encontrei o LibreOffice. Se acabou de instalar, conclua a instalacao e tente de novo.";
     }
-
-    private PdfExportFormat Format => ExportAsWord ? PdfExportFormat.Word : PdfExportFormat.PlainText;
 
     [RelayCommand]
     private async Task AddFilesAsync()
@@ -185,6 +228,7 @@ public sealed partial class PdfToWordViewModel : ViewModelBase
             Directory.CreateDirectory(OutputFolder);
 
             var extension = _exportService.GetExtension(Format);
+            var producesFolder = _exportService.ProducesFolder(Format);
             var ok = 0;
             var failed = 0;
 
@@ -194,9 +238,12 @@ public sealed partial class PdfToWordViewModel : ViewModelBase
                 item.ErrorMessage = null;
                 StatusMessage = $"Convertendo {item.FileName}...";
 
-                var output = Path.Combine(
-                    OutputFolder,
-                    Path.GetFileNameWithoutExtension(item.SourcePath) + extension);
+                // Imagens saem em uma pasta por documento; os demais formatos,
+                // em um arquivo unico.
+                var baseName = Path.GetFileNameWithoutExtension(item.SourcePath);
+                var output = producesFolder
+                    ? Path.Combine(OutputFolder, baseName)
+                    : Path.Combine(OutputFolder, baseName + extension);
 
                 try
                 {
@@ -213,7 +260,9 @@ public sealed partial class PdfToWordViewModel : ViewModelBase
             }
 
             StatusMessage = failed == 0
-                ? $"{ok} arquivo(s) gerado(s) em {OutputFolder}"
+                ? (producesFolder
+                    ? $"{ok} pasta(s) de imagens em {OutputFolder}"
+                    : $"{ok} arquivo(s) gerado(s) em {OutputFolder}")
                 : $"{ok} convertido(s), {failed} com erro. Passe o mouse sobre o item para ver o motivo.";
         }
         finally

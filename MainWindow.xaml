@@ -30,6 +30,9 @@
         <DataTemplate DataType="{x:Type vm:PdfToWordViewModel}">
             <views:PdfToWordView />
         </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:SecurityViewModel}">
+            <views:SecurityView />
+        </DataTemplate>
         <DataTemplate DataType="{x:Type vm:AboutViewModel}">
             <views:AboutView />
         </DataTemplate>

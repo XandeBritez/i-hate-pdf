@@ -56,7 +56,16 @@ public sealed class PdfService : IPdfService
                         throw new IndexOutOfRangeException(
                             $"Pagina {page.PageIndex + 1} inexistente em '{Path.GetFileName(page.SourcePath)}'.");
 
-                    output.AddPage(source.Pages[page.PageIndex]);
+                    var added = output.AddPage(source.Pages[page.PageIndex]);
+
+                    if (page.Rotation != 0)
+                    {
+                        // O giro e somado ao que a pagina ja trazia: um documento
+                        // pode chegar com /Rotate proprio, e substituir o valor
+                        // enderecaria a pagina errada.
+                        var rotation = (added.Rotate + page.Rotation) % 360;
+                        added.Rotate = rotation < 0 ? rotation + 360 : rotation;
+                    }
                 }
 
                 Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);

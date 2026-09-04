@@ -13,15 +13,23 @@ public sealed partial class CompressViewModel : ViewModelBase
 
     private readonly IPdfCompressionService _compressionService;
     private readonly IDialogService _dialogService;
+    private readonly ISettingsService _settings;
 
-    public CompressViewModel(IPdfCompressionService compressionService, IDialogService dialogService)
+    public CompressViewModel(
+        IPdfCompressionService compressionService,
+        IDialogService dialogService,
+        ISettingsService settings)
         : base("Comprimir PDF", "")
     {
         _compressionService = compressionService;
         _dialogService = dialogService;
+        _settings = settings;
 
-        OutputFolder = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "IHatePdf");
+        OutputFolder = settings.Current.CompressOutputFolder ?? AppSettings.DefaultOutputFolder;
+        Rasterize = settings.Current.CompressRasterize;
+        Strength = Enum.TryParse<CompressionStrength>(settings.Current.CompressStrength, out var saved)
+            ? saved
+            : CompressionStrength.Balanced;
 
         Items.CollectionChanged += (_, _) => CompressAllCommand.NotifyCanExecuteChanged();
     }
@@ -46,7 +54,18 @@ public sealed partial class CompressViewModel : ViewModelBase
 
     public bool ShowTextWarning => Rasterize && FilesWithText > 0;
 
-    partial void OnRasterizeChanged(bool value) => OnPropertyChanged(nameof(ShowTextWarning));
+    partial void OnRasterizeChanged(bool value)
+    {
+        OnPropertyChanged(nameof(ShowTextWarning));
+        _settings.Current.CompressRasterize = value;
+        _settings.Save();
+    }
+
+    partial void OnOutputFolderChanged(string value)
+    {
+        _settings.Current.CompressOutputFolder = value;
+        _settings.Save();
+    }
     partial void OnFilesWithTextChanged(int value) => OnPropertyChanged(nameof(ShowTextWarning));
 
     public bool StrengthHigh
@@ -69,6 +88,9 @@ public sealed partial class CompressViewModel : ViewModelBase
 
     partial void OnStrengthChanged(CompressionStrength value)
     {
+        _settings.Current.CompressStrength = value.ToString();
+        _settings.Save();
+
         OnPropertyChanged(nameof(StrengthHigh));
         OnPropertyChanged(nameof(StrengthBalanced));
         OnPropertyChanged(nameof(StrengthMaximum));

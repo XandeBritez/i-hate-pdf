@@ -52,6 +52,8 @@ public sealed partial class EditorViewModel : ViewModelBase
         SaveAsCommand.NotifyCanExecuteChanged();
         DeleteSelectedCommand.NotifyCanExecuteChanged();
         SelectAllCommand.NotifyCanExecuteChanged();
+        RotateSelectedCommand.NotifyCanExecuteChanged();
+        SaveSelectionCommand.NotifyCanExecuteChanged();
         ClearSelectionCommand.NotifyCanExecuteChanged();
         AddPagesCommand.NotifyCanExecuteChanged();
     }
@@ -208,6 +210,59 @@ public sealed partial class EditorViewModel : ViewModelBase
             Pages.Remove(page);
 
         StatusMessage = $"{selected.Count} pagina(s) removida(s).";
+    }
+
+    /// <summary>Gira as paginas marcadas; sem marcacao, gira o documento inteiro.</summary>
+    [RelayCommand(CanExecute = nameof(HasDocument))]
+    private void RotateSelected(string? degrees)
+    {
+        var delta = int.TryParse(degrees, out var parsed) ? parsed : 90;
+
+        var target = Pages.Where(p => p.IsSelected).ToList();
+        if (target.Count == 0)
+            target = Pages.ToList();
+
+        foreach (var page in target)
+            page.Rotate(delta);
+
+        StatusMessage = $"{target.Count} pagina(s) girada(s) {delta}graus.";
+    }
+
+    /// <summary>Grava so as paginas marcadas, sem alterar o documento aberto.</summary>
+    [RelayCommand(CanExecute = nameof(HasDocument))]
+    private async Task SaveSelectionAsync()
+    {
+        var selected = Pages.Where(p => p.IsSelected).ToList();
+        if (selected.Count == 0)
+        {
+            StatusMessage = "Marque as paginas que devem ir para o novo arquivo.";
+            return;
+        }
+
+        var suggestion = CurrentFilePath is null
+            ? "selecao.pdf"
+            : $"{Path.GetFileNameWithoutExtension(CurrentFilePath)}-selecao.pdf";
+
+        var output = _dialogService.SaveFile("Salvar as paginas marcadas", PdfFilter, suggestion);
+        if (output is null) return;
+
+        try
+        {
+            IsBusy = true;
+            StatusMessage = $"Gravando {selected.Count} pagina(s)...";
+            await _pdfService.BuildAsync(selected.Select(p => p.ToReference()), output);
+            _renderService.Invalidate(output);
+            StatusMessage = $"{selected.Count} pagina(s) em {output}";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = "Falha ao gravar a selecao.";
+            _dialogService.ShowError("Erro ao salvar", ex.Message);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 
     [RelayCommand(CanExecute = nameof(HasDocument))]

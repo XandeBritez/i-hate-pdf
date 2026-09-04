@@ -41,9 +41,15 @@ public partial class PageItem : ObservableObject
     /// <summary>true quando a pagina veio de um PDF diferente do documento aberto.</summary>
     [ObservableProperty] private bool _isFromOtherFile;
 
+    /// <summary>Giro aplicado pelo usuario, em graus horarios (0, 90, 180, 270).</summary>
+    [ObservableProperty] private int _rotation;
+
+    /// <summary>Gira a pagina em incrementos de 90 graus, sem re-renderizar a miniatura.</summary>
+    public void Rotate(int degrees) => Rotation = ((Rotation + degrees) % 360 + 360) % 360;
+
     partial void OnIsFromOtherFileChanged(bool value) => OnPropertyChanged(nameof(HasMoved));
 
     public string SourceFileName => Path.GetFileName(SourcePath);
 
-    public PageReference ToReference() => new(SourcePath, PageIndex);
+    public PageReference ToReference() => new(SourcePath, PageIndex, Rotation);
 }
